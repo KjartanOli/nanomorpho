@@ -46,7 +46,9 @@ token
 	|	')'		{ l.show("')'",$1); 			}
 	;
 
-expr : NAME { l.show("EXPRESSION", $1); } ;
+expr : NAME { l.show("EXPRESSION", $1); }
+	| RETURN expr { l.show("EXPRESSION", $1); }
+	;
 
 namelist : NAME namelistP ;
 namelistP
