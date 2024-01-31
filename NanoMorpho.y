@@ -62,39 +62,29 @@ exprList
 	: expr
 	| exprList ',' expr;
 
-namelist : NAME namelistP ;
-namelistP
-	: ',' NAME namelistP
-	| %empty
-	;
+namelist : NAME namelistP { l.show("NAME", $NAME); };
+namelistP : ',' NAME namelistP { l.show("NAME", $NAME); } | %empty;
 
-decl
-	: VAR namelist { l.show("DECL", $1); };
+decl : VAR namelist { l.show("DECL", $1); };
 
-ifexpr
-	: IF '(' expr ')' body ifexprP;
+ifexpr : IF '(' expr ')' body ifexprP;
 
-ifexprP
-	: ELSEIF '(' expr ')' body ifexprP
-	 elexp;
+ifexprP : ELSEIF '(' expr ')' body ifexprP elexp;
 
-elexp
-	: ELSE body
-	| %empty;
+elexp : ELSE body | %empty;
 
-declP
-	: decl ';'
-	| declP ';' decl ';'
+decllist : decl ';' decllist | %empty;
 
-exprP
-	: expr ';'
-	| exprP ';' expr ';'
+exprlist : expr ';' exprlist { l.show("Exrpession", ""); } | %empty;
 
-func
-	: NAME '(' namelist ')' funcBody;
+func : NAME '(' paramlist ')' funcBody { l.show("Function", ""); };
 
-funcBody
-	: '{' declP  exprP '}'
+paramlist : NAME paramlistP { l.show("PARAM", $NAME); }
+		| %empty { l.show("Empty param list", ""); };
+>>>>>>> 390f958 (Formatting)
 
-body
-	: '{' expr ';' expr '}';
+paramlistP : ',' NAME paramlistP { l.show("PARAM", $NAME); } | %empty;
+
+funcBody : '{' decllist exprlist '}';
+
+body : '{' expr ';' expr '}';
