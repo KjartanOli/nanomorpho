@@ -32,6 +32,7 @@
 
 program
 	:	decl program
+	|	expr program
 	|	%empty
 	;
 
@@ -44,6 +45,8 @@ token
 	|	'('		{ l.show("'('",$1); 			}
 	|	')'		{ l.show("')'",$1); 			}
 	;
+
+expr : NAME { l.show("EXPRESSION", $1); } ;
 
 namelist : NAME namelistP ;
 namelistP
