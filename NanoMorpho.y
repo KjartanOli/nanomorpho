@@ -67,5 +67,12 @@ ifexprP
 	| %empty
 	;
 
+decl
+	: VAR namelist { l.show("DECL", $1); };
 
+func
+	: NAME '(' namelist ')';
+
+body
+	: '{' EXPR ';' EXPR '}';
 %%
