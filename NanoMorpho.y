@@ -48,6 +48,8 @@ token
 
 expr : NAME { l.show("EXPRESSION", $1); }
 		| 		RETURN expr { l.show("Return EXPRESSION", $1); }
+		|		NAME '=' expr
+		|		NAME '(' exprList')'
 		| 		OPNAME expr { l.show("Unary OP expression", $1); }
 		| 		expr OPNAME expr { l.show("Binop expr", $2); }
 		| 		LITERAL { l.show("literal expr", $LITERAL); }
@@ -56,6 +58,10 @@ expr : NAME { l.show("EXPRESSION", $1); }
 		|		"while" '(' expr ')' body { l.show("while", ""); }
 	;
 
+exprList
+	: expr
+	| exprList ',' expr;
+	
 namelist : NAME namelistP ;
 namelistP
 	: ',' NAME namelistP
