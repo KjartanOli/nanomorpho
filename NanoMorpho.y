@@ -69,7 +69,7 @@ ifexpr
 	: IF '(' expr ')' body ifexprP;
 
 ifexprP
-	: ElSIF '(' expr ')' body ifexprP
+	: ELSEIF '(' expr ')' body ifexprP
 	 elexp;
 
 elexp
