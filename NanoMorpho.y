@@ -52,6 +52,6 @@ namelistP
 	;
 
 decl
-	: VAR namelist ;
+	: VAR namelist { l.show("DECL", $1); };
 
 %%
