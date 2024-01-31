@@ -31,8 +31,7 @@
 %%
 
 program
-	:	decl program
-	|	expr program
+	:	func program
 	|	%empty
 	;
 
@@ -81,7 +80,6 @@ func : NAME '(' paramlist ')' funcBody { l.show("Function", ""); };
 
 paramlist : NAME paramlistP { l.show("PARAM", $NAME); }
 		| %empty { l.show("Empty param list", ""); };
->>>>>>> 390f958 (Formatting)
 
 paramlistP : ',' NAME paramlistP { l.show("PARAM", $NAME); } | %empty;
 
