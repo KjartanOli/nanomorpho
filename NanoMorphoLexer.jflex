@@ -105,6 +105,31 @@ _OPNAME=[:&|<>=+\-*/%!?~\^]+
 	return IF;
 }
 
+"elsif" {
+	yylval = yytext();
+	return ELSEIF;
+}
+
+"else" {
+	yylval = yytext();
+	return ELSE;
+}
+
+"var" {
+	yylval = yytext();
+	return VAR;
+}
+
+"return" {
+	yylval = yytext();
+	return RETURN;
+}
+
+"while" {
+	yylval = yytext();
+	return WHILE;
+}
+
 "define" {
 	yylval = yytext();
 	return DEFINE;
