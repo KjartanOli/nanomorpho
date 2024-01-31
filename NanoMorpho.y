@@ -84,6 +84,8 @@ exprP
 func
 	: NAME '(' namelist ')';
 
-body
-	: '{' EXPR ';' EXPR '}';
+body : '{' expr ';' exprlist '}';
+
+exprlist : expr ';' exprlist
+		| %empty
 %%
