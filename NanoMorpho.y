@@ -70,8 +70,19 @@ ifexprP
 decl
 	: VAR namelist { l.show("DECL", $1); };
 
+declP
+	: decl ';'
+	| declP ';' decl ';'
+
+exprP
+	: expr ';'
+	| exprP ';' expr ';'
+
 func
-	: NAME '(' namelist ')';
+	: NAME '(' namelist ')' funcBody;
+
+funcBody
+	: '{' declP  exprP '}'
 
 body
 	: '{' EXPR ';' EXPR '}';
