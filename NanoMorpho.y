@@ -47,7 +47,13 @@ token
 	;
 
 expr : NAME { l.show("EXPRESSION", $1); }
-	| RETURN expr { l.show("EXPRESSION", $1); }
+		| 		RETURN expr { l.show("Return EXPRESSION", $1); }
+		| 		OPNAME expr { l.show("Unary OP expression", $1); }
+		| 		expr OPNAME expr { l.show("Binop expr", $2); }
+		| 		LITERAL { l.show("literal expr", $LITERAL); }
+		| '(' 	expr ')' { l.show("parenth expr", $1); }
+		| 		ifexpr { l.show("if expr", ""); }
+		|		"while" '(' expr ')' body { l.show("while", ""); }
 	;
 
 namelist : NAME namelistP ;
