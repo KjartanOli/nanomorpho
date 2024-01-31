@@ -58,14 +58,15 @@ decl
 	: VAR namelist { l.show("DECL", $1); };
 
 ifexpr
-	: IF '(' expr ')' body ifexprP
-	;
+	: IF '(' expr ')' body ifexprP;
 
 ifexprP
-	: ElSIF '(' expr ')' body
-	| ELSE body
-	| %empty
-	;
+	: ElSIF '(' expr ')' body ifexprP
+	 elexp;
+
+elexp
+	: ELSE body
+	| %empty;
 
 decl
 	: VAR namelist { l.show("DECL", $1); };
