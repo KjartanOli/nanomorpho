@@ -87,11 +87,19 @@ exprP
 	: expr ';'
 	| exprP ';' expr ';'
 
+declP
+	: decl ';'
+	| declP ';' decl ';'
+
+exprP
+	: expr ';'
+	| exprP ';' expr ';'
+
 func
-	: NAME '(' namelist ')';
+	: NAME '(' namelist ')' funcBody;
 
-body : '{' expr ';' exprlist '}';
+funcBody
+	: '{' declP  exprP '}'
 
-exprlist : expr ';' exprlist
-		| %empty
-%%
+body
+	: '{' expr ';' expr '}';
