@@ -82,10 +82,7 @@ exprP
 	| exprP ';' expr ';'
 
 func
-	: NAME '(' namelist ')' funcBody;
-
-funcBody
-	: '{' declP  exprP '}'
+	: NAME '(' namelist ')';
 
 body
 	: '{' EXPR ';' EXPR '}';
