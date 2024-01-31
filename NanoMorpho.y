@@ -74,7 +74,7 @@ elsif : ELSEIF '(' expr ')' body elsif { l.show("ELSEIF", $ELSEIF); } | else;
 
 decllist : decl ';' decllist | %empty;
 
-exprlist : expr ';' exprlist { l.show("Exrpession", ""); } | %empty;
+exprlist : expr ';' exprlist { l.show("Expression", ""); } | %empty;
 
 func : NAME '(' paramlist ')' funcBody { l.show("Function", ""); };
 
