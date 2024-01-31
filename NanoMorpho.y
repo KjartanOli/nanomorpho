@@ -61,7 +61,7 @@ expr : NAME { l.show("EXPRESSION", $1); }
 exprList
 	: expr
 	| exprList ',' expr;
-	
+
 namelist : NAME namelistP ;
 namelistP
 	: ',' NAME namelistP
@@ -81,17 +81,6 @@ ifexprP
 elexp
 	: ELSE body
 	| %empty;
-
-decl
-	: VAR namelist { l.show("DECL", $1); };
-
-declP
-	: decl ';'
-	| declP ';' decl ';'
-
-exprP
-	: expr ';'
-	| exprP ';' expr ';'
 
 declP
 	: decl ';'
