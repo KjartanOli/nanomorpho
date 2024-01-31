@@ -85,4 +85,4 @@ paramlistP : ',' NAME paramlistP { l.show("PARAM", $NAME); } | %empty;
 
 funcBody : '{' decllist exprlist '}';
 
-body : '{' expr ';' expr '}';
+body : '{' expr ';' exprlist '}';
