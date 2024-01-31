@@ -24,7 +24,7 @@
 	}	
 }
 
-%token <String> LITERAL NAME IF DEFINE '(' ')'
+%token <String> LITERAL NAME OPNAME IF DEFINE '(' ')'
 %token YYERRCODE
 %type <String> token
 
@@ -38,6 +38,7 @@ program
 token
 	:	LITERAL	{ l.show("LITERAL",$LITERAL); 	}
 	|	NAME	{ l.show("NAME",$NAME); 		}
+	|	OPNAME { l.show("OPNAME", $OPNAME); }
 	|	IF		{ l.show("IF",$IF); 			}
 	|	DEFINE	{ l.show("DEFINE",$DEFINE); 	}
 	|	'('		{ l.show("'('",$1); 			}
