@@ -31,7 +31,7 @@
 %%
 
 program
-	:	token program
+	:	decl program
 	|	%empty
 	;
 
@@ -44,5 +44,14 @@ token
 	|	'('		{ l.show("'('",$1); 			}
 	|	')'		{ l.show("')'",$1); 			}
 	;
+
+namelist : NAME namelistP ;
+namelistP
+	: ',' NAME namelistP
+	| %empty
+	;
+
+decl
+	: VAR namelist ;
 
 %%
