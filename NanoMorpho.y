@@ -66,11 +66,11 @@ namelistP : ',' NAME namelistP { l.show("NAME", $NAME); } | %empty;
 
 decl : VAR namelist { l.show("DECL", $1); };
 
-ifexpr : IF '(' expr ')' body ifexprP;
+ifexpr : IF '(' expr ')' body elsif { l.show("IF", $IF); };
 
-ifexprP : ELSEIF '(' expr ')' body ifexprP elexp;
+elsif : ELSEIF '(' expr ')' body elsif { l.show("ELSEIF", $ELSEIF); } | else;
 
-elexp : ELSE body | %empty;
+ else : ELSE body { l.show("ELSE", $ELSE); } | %empty;
 
 decllist : decl ';' decllist | %empty;
 
