@@ -9,3 +9,6 @@ NanoMorpho.java: NanoMorpho.y
 NanoMorphoLexer.java: NanoMorphoLexer.jflex
 	jflex NanoMorphoLexer.jflex
 
+
+.PHONY test: NanoMorpho.class NanoMorphoLexer.class
+	java NanoMorpho test.s
