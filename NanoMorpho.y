@@ -24,7 +24,7 @@
 	}	
 }
 
-%token <String> LITERAL VAR WHILE RETURN NAME OPNAME IF ELSEIF ELSE DEFINE '(' ')'
+%token <String> LITERAL VAR WHILE RETURN NAME OPNAME IF ELSEIF ELSE DEFINE '(' ')' '{''}'
 %token YYERRCODE
 %type <String> expr
 %type <String> paramlist
