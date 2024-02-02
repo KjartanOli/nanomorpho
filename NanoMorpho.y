@@ -26,23 +26,12 @@
 
 %token <String> LITERAL VAR WHILE RETURN NAME OPNAME IF ELSEIF ELSE DEFINE '(' ')'
 %token YYERRCODE
-%type <String> token
 
 %%
 
 program
 	:	func program
 	|	%empty
-	;
-
-token
-	:	LITERAL	{ l.show("LITERAL",$LITERAL); 	}
-	|	NAME	{ l.show("NAME",$NAME); 		}
-	|	OPNAME { l.show("OPNAME", $OPNAME); }
-	|	IF		{ l.show("IF",$IF); 			}
-	|	DEFINE	{ l.show("DEFINE",$DEFINE); 	}
-	|	'('		{ l.show("'('",$1); 			}
-	|	')'		{ l.show("')'",$1); 			}
 	;
 
 expr : NAME { l.show("EXPRESSION", $1); }
@@ -56,10 +45,6 @@ expr : NAME { l.show("EXPRESSION", $1); }
 		| 		ifexpr { l.show("if expr", ""); }
 		|		"while" '(' expr ')' body { l.show("while", ""); }
 	;
-
-exprList
-	: expr
-	| exprList ',' expr;
 
 namelist : NAME namelistP { l.show("NAME", $NAME); };
 namelistP : ',' NAME namelistP { l.show("NAME", $NAME); } | %empty;
