@@ -63,7 +63,6 @@
 		case LITERAL:	return "LITERAL";
 		case NAME:		return "NAME";
 		case IF:		return "IF";
-		case DEFINE:	return "DEFINE";
 		case YYERRCODE:	return "YYERRCODE";
 		case '(':		return "'('";
 		case ')':		return "')'";
@@ -128,11 +127,6 @@ _OPNAME=[:&|<>=+\-*/%!?~\^]+
 "while" {
 	yylval = yytext();
 	return WHILE;
-}
-
-"define" {
-	yylval = yytext();
-	return DEFINE;
 }
 
 {_NAME} {
