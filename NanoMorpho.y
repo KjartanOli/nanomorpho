@@ -26,7 +26,8 @@
 
 %token <String> LITERAL VAR WHILE RETURN NAME OPNAME IF ELSEIF ELSE DEFINE '(' ')'
 %token YYERRCODE
-
+%type <String> expr
+%type <String> paramlist
 %%
 
 program
@@ -35,13 +36,13 @@ program
 	;
 
 expr : NAME { l.show("EXPRESSION", $1); }
-		| 		RETURN expr { l.show("Return EXPRESSION", $1); }
-		|		NAME '=' expr
-		|		NAME '(' exprList')'
-		| 		OPNAME expr { l.show("Unary OP expression", $1); }
-		| 		expr OPNAME expr { l.show("Binop expr", $2); }
+		| 		RETURN expr { l.show("Return EXPRESSION", $1 + ' ' + $2); }
+		|		NAME '=' expr { l.show("assignment expression", $1 + '=' + $3); }
+		|		NAME '(' exprlist')' { l.show("funcall", $1 + $2 + $4); }
+		| 		OPNAME expr { l.show("Unary OP expression", $1 + $2); }
+		| 		expr OPNAME expr { l.show("Binop expr", $1 + $2 + $3); }
 		| 		LITERAL { l.show("literal expr", $LITERAL); }
-		| '(' 	expr ')' { l.show("parenth expr", $1); }
+		|		'(' expr ')' { l.show("parenth expr", $1 + $2 + $3); }
 		| 		ifexpr { l.show("if expr", ""); }
 		|		"while" '(' expr ')' body { l.show("while", ""); }
 	;
@@ -55,13 +56,13 @@ ifexpr : IF '(' expr ')' body elsif { l.show("IF", $IF); };
 
 elsif : ELSEIF '(' expr ')' body elsif { l.show("ELSEIF", $ELSEIF); } | else;
 
- else : ELSE body { l.show("ELSE", $ELSE); } | %empty;
+else : ELSE body { l.show("ELSE", $ELSE); } | %empty;
 
 decllist : decl ';' decllist | %empty;
 
 exprlist : expr ';' exprlist { l.show("Expression", ""); } | %empty;
 
-func : NAME '(' paramlist ')' funcBody { l.show("Function", ""); };
+func : NAME '(' paramlist ')' funcBody { l.show("Function", $1 + $2 + $paramlist + $4); };
 
 paramlist : NAME paramlistP { l.show("PARAM", $NAME); }
 		| %empty { l.show("Empty param list", ""); };
