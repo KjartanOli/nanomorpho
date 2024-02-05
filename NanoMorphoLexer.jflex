@@ -87,7 +87,7 @@ _OPNAME=[:&|<>=+\-*/%!?~\^]+
 	return IF;
 }
 
-"elsif" {
+"elseif" {
 	yylval = yytext();
 	return ELSEIF;
 }
