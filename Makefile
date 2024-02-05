@@ -7,8 +7,7 @@ NanoMorpho.java: NanoMorpho.y
 	bison $^
 
 NanoMorphoLexer.java: NanoMorphoLexer.jflex
-	jflex NanoMorphoLexer.jflex
-
+	~/.local/bin/jflex NanoMorphoLexer.jflex
 
 .PHONY test: NanoMorpho.class NanoMorphoLexer.class
-	java NanoMorpho test.s
+	java NanoMorpho test.nm

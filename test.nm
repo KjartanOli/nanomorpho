@@ -14,7 +14,7 @@ h(x,y) {
 a() {
 var x;
 if ((x)) { y; }
-elsif (a + b) { x = y; }
+elseif (a + b) { x = y; }
 else { z; };
 }
 
