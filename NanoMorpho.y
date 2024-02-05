@@ -24,51 +24,32 @@
 	}	
 }
 
-%token <String> LITERAL VAR WHILE RETURN NAME OPNAME IF ELSEIF ELSE '(' ')' '{''}'
+%token <String> LITERAL VAR WHILE RETURN NAME OPNAME IF ELSEIF ELSE '(' ')' '{''}' '=' ',' ';'
 %token YYERRCODE
-%type <String> expr
-%type <String> paramlist
+%type <String> token
+
 %%
 
 program
-	:	func program
+	:	token program
 	|	%empty
 	;
 
-expr : NAME { l.show("EXPRESSION", $1); }
-		| 		RETURN expr { l.show("Return EXPRESSION", $1 + ' ' + $2); }
-		|		NAME '=' expr { l.show("assignment expression", $1 + '=' + $3); }
-		|		NAME '(' exprlist')' { l.show("funcall", $1 + $2 + $4); }
-		| 		OPNAME expr { l.show("Unary OP expression", $1 + $2); }
-		| 		expr OPNAME expr { l.show("Binop expr", $1 + $2 + $3); }
-		| 		LITERAL { l.show("literal expr", $LITERAL); }
-		|		'(' expr ')' { l.show("parenth expr", $1 + $2 + $3); }
-		| 		ifexpr { l.show("if expr", ""); }
-		|		"while" '(' expr ')' body { l.show("while", ""); }
+token
+	:	LITERAL { l.show("LITERAL",$LITERAL); 	}
+		|	NAME { l.show("NAME",$NAME); 		}
+		| 	VAR { l.show("VAR", $VAR); }
+		|	RETURN { l.show("RETURN", $RETURN); }
+		|	IF { l.show("IF",$IF); 			}
+		|	ELSEIF { l.show("ELSEIF", $ELSEIF); }
+		|	ELSE { l.show("ELSE", $ELSE); }
+		|	OPNAME { l.show("OPNAME",$OPNAME); 	}
+		|	WHILE { l.show("WHILE", $WHILE); }
+		|	',' { l.show("','", $1); }
+		|	';' {l.show("';'", $1); }
+		|	'=' {l.show("'='", $1); }
+		|	'('		{l.show("'('",$1); 			}
+		|	')'		{l.show("')'",$1); 			}
+		|	'{'		{l.show("'{'",$1); 			}
+		|	'}'		{l.show("'}'",$1); 			}
 	;
-
-namelist : NAME namelistP { l.show("NAME", $NAME); };
-namelistP : ',' NAME namelistP { l.show("NAME", $NAME); } | %empty;
-
-decl : VAR namelist { l.show("DECL", $1); };
-
-ifexpr : IF '(' expr ')' body elsif { l.show("IF", $IF); };
-
-elsif : ELSEIF '(' expr ')' body elsif { l.show("ELSEIF", $ELSEIF); } | else;
-
-else : ELSE body { l.show("ELSE", $ELSE); } | %empty;
-
-decllist : decl ';' decllist | %empty;
-
-exprlist : expr ';' exprlist { l.show("Expression", ""); } | %empty;
-
-func : NAME '(' paramlist ')' funcBody { l.show("Function", $1 + $2 + $paramlist + $4); };
-
-paramlist : NAME paramlistP { l.show("PARAM", $NAME); }
-		| %empty { l.show("Empty param list", ""); };
-
-paramlistP : ',' NAME paramlistP { l.show("PARAM", $NAME); } | %empty;
-
-funcBody : '{' decllist exprlist '}';
-
-body : '{' expr ';' exprlist '}';
