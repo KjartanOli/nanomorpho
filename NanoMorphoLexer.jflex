@@ -38,15 +38,15 @@
 	{
 		switch( token )
 		{
-		case LITERAL:	return "LITERAL";
-		case NAME:		return "NAME";
-		case IF:		return "IF";
+		case LITERAL:   return "LITERAL";
+		case NAME:      return "NAME";
+		case IF:        return "IF";
 		case ELSEIF:    return "ELSEIF";
 		case ELSE:      return "ELSE";
 		case WHILE:     return "WHILE";
-		case YYERRCODE:	return "YYERRCODE";
-		case '(':		return "'('";
-		case ')':		return "')'";
+		case YYERRCODE: return "YYERRCODE";
+		case '(':       return "'('";
+		case ')':       return "')'";
 		case '{':       return "'{'";
 		case '}':       return "'}'";
 		}
