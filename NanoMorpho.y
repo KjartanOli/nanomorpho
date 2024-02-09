@@ -54,7 +54,7 @@ smallexpr : NAME { l.show("EXPRESSION", $1); }
 		| 		LITERAL { l.show("literal expr", $LITERAL); }
 		|		'(' expr ')' { l.show("parenth expr", $1 + $2 + $3); }
 		| 		ifexpr { l.show("if expr", ""); }
-		|		"while" '(' expr ')' body { l.show("while", ""); }
+		|		WHILE '(' expr ')' body { l.show("while", ""); }
 		| 		body
 	;
 

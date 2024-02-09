@@ -19,5 +19,5 @@ else { z; };
 }
 
 a(g) {
-	while () {}
+	while (a) {a;};
 }
