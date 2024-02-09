@@ -28,6 +28,8 @@
 %token YYERRCODE
 %type <String> expr
 %type <String> paramlist
+%type <String> smallexpr
+
 %%
 
 program
@@ -35,16 +37,25 @@ program
 	|	%empty
 	;
 
-expr : NAME { l.show("EXPRESSION", $1); }
-		| 		RETURN expr { l.show("Return EXPRESSION", $1 + ' ' + $2); }
-		|		NAME '=' expr { l.show("assignment expression", $1 + '=' + $3); }
+expr : RETURN expr { l.show("Return EXPRESSION", $1 + ' ' + $2); }
+		| NAME '=' expr { l.show("assignment expression", $1 + '=' + $3); }
+		| binopexpr
+
+binopexpr: smallexpr binopexprP ;
+
+binopexprP: OPNAME smallexpr binopexprP
+		| %empty
+		;
+
+
+smallexpr : NAME { l.show("EXPRESSION", $1); }
 		|		NAME '(' exprlist')' { l.show("funcall", $1 + $2 + $4); }
-		| 		OPNAME expr { l.show("Unary OP expression", $1 + $2); }
-		| 		expr OPNAME expr { l.show("Binop expr", $1 + $2 + $3); }
+		| 		OPNAME smallexpr { l.show("Unary OP expression", $1 + $2); }
 		| 		LITERAL { l.show("literal expr", $LITERAL); }
 		|		'(' expr ')' { l.show("parenth expr", $1 + $2 + $3); }
 		| 		ifexpr { l.show("if expr", ""); }
-		|		"while" '(' expr ')' body { l.show("while", ""); }
+		|		WHILE '(' expr ')' body { l.show("while", ""); }
+		| 		body
 	;
 
 namelist : NAME namelistP { l.show("NAME", $NAME); };
