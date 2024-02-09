@@ -10,7 +10,17 @@
 
 %{
 
+	private static NanoMorphoLexer lexer;
 	String yylval;
+	private static int token1, token2;
+
+	public static String advance(){
+		String res = lexeme1;
+		token1 = token2;
+		lexem1 = lexemel;
+		if(token1 == EOF) return; // Tíma bundið nafn fyrir end of file
+		token2 =lexer.yylex;
+	}
 
 	public String getLVal()
 	{
@@ -55,6 +65,20 @@
 
 	public int getLine() { return yyline+1; }
 	public int getColumn() { return yycolumn+1; }
+
+	public String over(int token){
+	       if(token1!=token) expcted(token);
+	       String res = lexeme1;
+	       advance();
+	       return res;
+	}
+
+	public String over(char token){
+	       if(token1!=token) expcted(token);
+	       String res = lexeme1;
+	       advance();
+	       return res;
+	}
 %}
 
   /* Reglulegar skilgreiningar */
