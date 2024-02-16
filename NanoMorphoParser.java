@@ -22,66 +22,54 @@ public class NanoMorphoParser
     final static int OP7 = 1015;
 	final static int FUN = 1016;
 
-    static String advance() throws Exception
-    {
-			return NanoMorphoLexer.advance();
-		}
-    
-    static String over( int tok ) throws Exception
-    {
-			return NanoMorphoLexer.over(tok);
-		}
-    
-    static String over( char tok ) throws Exception
-    {
-			return NanoMorphoLexer.over(tok);
-		}
-    
-    static int getToken()
-    {
-			return NanoMorphoLexer.getToken();
-		}
-    
-    static String getTokenName()
-    {
-			return NanoMorphoLexer.getTokenName();
-		}
-    
-    static String getLexeme()
-    {
-			return NanoMorphoLexer.getLexeme();
-		}
-    
-    static int getToken2()
-    {
-			return NanoMorphoLexer.getToken2();
-		}
-    
-    static int getLine()
-    {
-			return NanoMorphoLexer.getLine();
-		}
-    
-    static int getColumn()
-    {
-			return NanoMorphoLexer.getColumn();
-		}    
+    static String advance() throws Exception {
+		return NanoMorphoLexer.advance();
+	}
 
-    static void expected( int tok )
-    {
-			NanoMorphoLexer.expected(tok);
-		}
-    
-    static void expected( char tok )
-    {
-			NanoMorphoLexer.expected(tok);
-		}
+	static String over( int tok ) throws Exception {
+		return NanoMorphoLexer.over(tok);
+	}
 
-    static void expected( String str )
-    {
-			NanoMorphoLexer.expected(str);
-		}
-        
+	static String over( char tok ) throws Exception {
+		return NanoMorphoLexer.over(tok);
+	}
+
+	static int getToken() {
+		return NanoMorphoLexer.getToken();
+	}
+
+	static String getTokenName() {
+		return NanoMorphoLexer.getTokenName();
+	}
+
+	static String getLexeme() {
+		return NanoMorphoLexer.getLexeme();
+	}
+
+	static int getToken2() {
+		return NanoMorphoLexer.getToken2();
+	}
+
+	static int getLine() {
+		return NanoMorphoLexer.getLine();
+	}
+
+	static int getColumn() {
+		return NanoMorphoLexer.getColumn();
+	}
+
+	static void expected( int tok ) {
+		NanoMorphoLexer.expected(tok);
+	}
+
+	static void expected( char tok ) {
+		NanoMorphoLexer.expected(tok);
+	}
+
+	static void expected( String str ) {
+		NanoMorphoLexer.expected(str);
+	}
+
     // You will not need the symbol table until you do the compiler proper.
     // The symbol table consists of the following two variables.
     private static int varCount;
@@ -89,75 +77,72 @@ public class NanoMorphoParser
 
     // Adds a new variable to the symbol table.
     // Throws Error if the variable already exists.
-    private static void addVar( String name )
-    {
-			if( varTable.get(name) != null )
-				expected("undeclared variable name");
-			varTable.put(name,varCount++);
-		}
+	private static void addVar( String name ) {
+		if( varTable.get(name) != null )
+			expected("undeclared variable name");
+		varTable.put(name,varCount++);
+	}
 
     // Finds the location of an existing variable.
     // Throws Error if the variable does not exist.
-    private static int findVar( String name )
-    {
-			Integer res = varTable.get(name);
-			if( res == null )
-				expected("declared variable name");
-			return res;
-		}
-    
-    static public void main( String[] args ) throws Exception
-    {
-			Vector<Object[]> code = null;
-			try
-        {
-					NanoMorphoLexer.startLexer(args[0]);
-					code = program();
-					if( getToken() != EOF ) expected("end of file");
-				}
-        catch( Throwable e )
-        {
-					System.out.println(e.getMessage());
-					System.exit(1);
-				}
-			// For the parser you do not need this line:
-			generateProgram(args[0],code);
-		}
+	private static int findVar( String name ) {
+		Integer res = varTable.get(name);
+		if( res == null )
+			expected("declared variable name");
+		return res;
+	}
 
     static Vector<Object[]> program() throws Exception {
-			while (token1 != EOF)
+			while (getToken() != EOF)
 				function();
 			return null;
 	}
 
 	static Object[] function() throws Exception {
-			varCount = 0;
-			varTable = new HashMap<String,Integer>();
+		varCount = 0;
+		varTable = new HashMap<String,Integer>();
 
-			over(FUN);
-			over(NAME);
-			over('(');
-			parameter_list();
-			over(')');
-			function_body();
+		over(FUN);
+		var name = over(NAME);
+		System.err.printf("Function: %s%n", name);
+		over('(');
+		parameter_list();
+		over(')');
+		function_body();
 
-			// We're done with this symbol table so we'll erase it
-			varTable = null;
+		// We're done with this symbol table so we'll erase it
+		varTable = null;
+		return null;
+	}
+
+	static Object[] parameter_list() throws Exception {
+		if (getToken() != NAME)
 			return null;
+		over(NAME);
+		while (getToken() == ',') {
+			over(',');
+			over(NAME);
+		}
+		return null;
 	}
 
 	static Object[] declaration_list() throws Exception {
-		while (token1 == VAR) {
+		while (getToken() == VAR) {
 			decl();
 			over(';');
 		}
+		return null;
 	}
 
 	static Object[] function_body() throws Exception {
 		over('{');
 		declaration_list();
-		expression_list();
+		while (getToken() == '}') {
+			expr();
+			over(';');
+		}
 		over('}');
+		return null;
 	}
 
     // decl = 'var', NAME, { ',' NAME } ;
@@ -174,17 +159,17 @@ public class NanoMorphoParser
 
     static Object[] expr() throws Exception
     {
-			if (token1 == RETURN) {
+			if (getToken() == RETURN) {
 				over(RETURN);
 				expr();
 			}
-			else if (token1 == NAME && token2 == '=') {
+			else if (getToken() == NAME && getToken2() == '=') {
 				over(NAME);
 				over('=');
 				expr();
 			}
 			else {
-				binopexpr();
+				binopexpr(OP1);
 			}
 			return null;
 		}
@@ -194,25 +179,37 @@ public class NanoMorphoParser
     // distinguish priorities of operators
     static Object[] binopexpr( int pri ) throws Exception {
 		smallexpr();
-		while (token1 == OPNAME) {
-			over(OPNAME);
+		while (OP1 <= getToken() && getToken() <= OP7) {
+			advance();
 			smallexpr();
 		}
 		return null;
 	}
-    
+
     static Object[] smallexpr() throws Exception {
-		switch (token1) {
+		switch (getToken()) {
 			case NAME:
 				over(NAME);
-				if (token1 == '(') {
+				if (getToken() == '(') {
 					over('(');
-					expression_list();
+					if (getToken() == NAME) {
+						over(NAME);
+						while (getToken() == ',') {
+							over(',');
+							over(NAME);
+						}
+					}
 					over(')');
 				}
 				break;
-			case OPNAME:
-				over(OPNAME);
+			case OP1:
+			case OP2:
+			case OP3:
+			case OP4:
+			case OP5:
+			case OP6:
+			case OP7:
+				advance();
 				smallexpr();
 				break;
 			case LITERAL:
@@ -223,7 +220,7 @@ public class NanoMorphoParser
 				expr();
 				over(')');
 				break;
-			case IFEXPR:
+			case IF:
 				ifexpr();
 				break;
 			case WHILE:
@@ -239,23 +236,22 @@ public class NanoMorphoParser
     // if-expression syntax without 'elsif'
     //
     // ifexpr = 'if', expr, body, [ 'else', ( ifexpr | body ) ] ;
-    static Object[] ifexpr() throws Exception
-    {
-			over(IF);
-			Object[] cond = expr();
-			Object[] thenpart = body();
-			if( getToken() != ELSE )
-				return new Object[]{"IF1",cond,thenpart};
-			over(ELSE);
-			if( getToken() == IF )
-				return new Object[]{"IF2",cond,thenpart,ifexpr()};
-			else if( getToken() == '{' )
-				return new Object[]{"IF2",cond,thenpart,body()};
-			else
-				expected("'if' or '{' following 'else'");
-			throw new Error("This can't happen");
-		}
-    
+    static Object[] ifexpr() throws Exception {
+		over(IF);
+		Object[] cond = expr();
+		Object[] thenpart = body();
+		if( getToken() != ELSE )
+			return new Object[]{"IF1",cond,thenpart};
+		over(ELSE);
+		if( getToken() == IF )
+			return new Object[]{"IF2",cond,thenpart,ifexpr()};
+		else if( getToken() == '{' )
+			return new Object[]{"IF2",cond,thenpart,body()};
+		else
+			expected("'if' or '{' following 'else'");
+		throw new Error("This can't happen");
+	}
+
     /*
     // Alternative syntax with 'elsif'.
        // Slightly more complicated and requires that
@@ -277,37 +273,40 @@ public class NanoMorphoParser
        return new Object[]{"IF2",cond,thenpart,body()};
        }
      */
-    
-    static Object[] body() throws Exception
-    {
-			//...
-			return null;
+
+    static Object[] body() throws Exception {
+		over('{');
+		expr();
+		over(';');
+		while (getToken() != '}') {
+			expr();
+			over(';');
 		}
-    
+		over('}');
+		return null;
+	}
+
     // None of the following is needed in the parser
-    static void generateProgram( String filename, Vector<Object[]> funs )
-    {
-			String programname = filename.substring(0,filename.lastIndexOf('.'));
-			emit("\"%s.mexe\" = main in",programname);
-			emit("!");
-			emit("{{");
-			for( Object[] f: funs ) generateFunction(f);
-			emit("}}");
-			emit("*");
-			emit("BASIS;");
-		}
-    
-    static void emit( String fmt, Object... args )
-    {
-			System.out.format(fmt,args);
-			System.out.println();
-		}
-    
-    static void generateFunction( Object[] fun )
-    {
-			//...
-		}
-    
+    static void generateProgram( String filename, Vector<Object[]> funs ) {
+		String programname = filename.substring(0,filename.lastIndexOf('.'));
+		emit("\"%s.mexe\" = main in",programname);
+		emit("!");
+		emit("{{");
+		for( Object[] f: funs ) generateFunction(f);
+		emit("}}");
+		emit("*");
+		emit("BASIS;");
+	}
+
+    static void emit( String fmt, Object... args ) {
+		System.out.format(fmt,args);
+		System.out.println();
+	}
+
+    static void generateFunction( Object[] fun ) {
+		//...
+	}
+
     // All existing labels, i.e. labels the generated
     // code that we have already produced, should be
     // of form
@@ -319,21 +318,33 @@ public class NanoMorphoParser
     // The first generated label would be _0, the
     // next would be _1, and so on.
     private static int nextLab = 0;
-    
-    // Returns a new, previously unused, label.
-    // Useful for control-flow expressions.
-    static String newLabel()
-    {
-			return "_"+(nextLab++);
+
+	// Returns a new, previously unused, label.
+	// Useful for control-flow expressions.
+	static String newLabel() {
+		return "_"+(nextLab++);
+	}
+
+	static void generateExpr( Object[] e ) {
+		//...
+	}
+
+	static void generateBody( Object[] bod ) {
+		//...
+	}
+
+	static public void main( String[] args ) throws Exception {
+		Vector<Object[]> code = null;
+		try {
+			NanoMorphoLexer.startLexer(args[0]);
+			code = program();
+			if( getToken() != EOF ) expected("end of file");
 		}
-    
-    static void generateExpr( Object[] e )
-    {
-			//...
+		catch(Throwable e) {
+			System.out.println(e.getMessage());
+			System.exit(1);
 		}
-    
-    static void generateBody( Object[] bod )
-    {
-			//...
-		}
+		// For the parser you do not need this line:
+		generateProgram(args[0],code);
+	}
 }

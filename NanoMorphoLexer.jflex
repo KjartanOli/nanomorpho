@@ -1,13 +1,28 @@
+/**
+    Höfundur: Snorri Agnarsson, 2017-2024
+
+    Þennan lesgreini má þýða og keyra með skipununum
+        java -jar JFlex-full-1.9.1.jar nanomorpholexer.jflex
+        javac NanoMorphoLexer.java NanoMorphoParser.java
+        java NanoMorphoParser inntaksskrá
+    Einnig má nota forritið 'make', ef viðeigandi 'makefile'
+    er til staðar:
+        make test
+ */
+
+import java.io.*;
+
 %%
 
 %public
 %class NanoMorphoLexer
 %unicode
+%byaccj
 %line
 %column
-%byaccj
 
 %{
+
 // We will have one and only one lexer
 private static NanoMorphoLexer lexer;
 
@@ -168,6 +183,7 @@ public static String over( char tok ) throws Exception
     advance();
     return res;
 }
+
 %}
 
   /* Reglulegar skilgreiningar */
@@ -180,64 +196,93 @@ _INT={_DIGIT}+
 _STRING=\"([^\"\\]|\\b|\\t|\\n|\\f|\\r|\\\"|\\\'|\\\\|(\\[0-3][0-7][0-7])|\\[0-7][0-7]|\\[0-7])*\"
 _CHAR=\'([^\'\\]|\\b|\\t|\\n|\\f|\\r|\\\"|\\\'|\\\\|(\\[0-3][0-7][0-7])|(\\[0-7][0-7])|(\\[0-7]))\'
 _DELIM=[(){},;=]
-_NAME=([:letter:]|_)([:letter:]|_DIGIT|_)*
-_OPNAME=[:&|<>=+\-*/%!?~\^]+
+_NAME=(_|[:jletter:])(_|[:jletter:]|{_DIGIT})*
+_OPNAME=[\+\-*/!%&=><\:\^\~&|?]+
 
 %%
 
+  /* Lesgreiningarreglur */
+
+  /* Scanner rules */
+
 {_DELIM} {
-	yylval = yytext();
-	return yycharat(0);
+    lexeme2 = yytext();
+    return yycharat(0);
 }
 
 {_STRING} | {_FLOAT} | {_CHAR} | {_INT} | null | true | false {
-	yylval = yytext();
-	return LITERAL;
+    lexeme2 = yytext();
+    return NanoMorphoParser.LITERAL;
 }
 
 "if" {
-	yylval = yytext();
-	return IF;
-}
-
-"elseif" {
-	yylval = yytext();
-	return ELSEIF;
+    lexeme2 = yytext();
+    return NanoMorphoParser.IF;
 }
 
 "else" {
-	yylval = yytext();
-	return ELSE;
+    lexeme2 = yytext();
+    return NanoMorphoParser.ELSE;
 }
 
-"fun" {
-	yylval = yytext();
-	return FUN;
-}
-
-"var" {
-	yylval = yytext();
-	return VAR;
-}
-
-"return" {
-	yylval = yytext();
-	return RETURN;
+"elsif" {
+    lexeme2 = yytext();
+    return NanoMorphoParser.ELSIF;
 }
 
 "while" {
-	yylval = yytext();
-	return WHILE;
+    lexeme2 = yytext();
+    return NanoMorphoParser.WHILE;
+}
+
+"var" {
+    lexeme2 = yytext();
+    return NanoMorphoParser.VAR;
+}
+
+"fun" {
+	lexeme2 = yytext();
+	return NanoMorphoParser.FUN;
+}
+
+"return" {
+    lexeme2 = yytext();
+    return NanoMorphoParser.RETURN;
 }
 
 {_NAME} {
-	yylval = yytext();
-	return NAME;
+    lexeme2 = yytext();
+    return NanoMorphoParser.NAME;
 }
 
 {_OPNAME} {
-	yylval = yytext();
-	return OPNAME;
+    lexeme2 = yytext();
+    switch( yycharat(0) )
+    {
+    case '?':
+    case '~':
+    case '^':
+        return NanoMorphoParser.OP1;
+    case ':':
+        return NanoMorphoParser.OP2;
+    case '|':
+        return NanoMorphoParser.OP3;
+    case '&':
+        return NanoMorphoParser.OP4;
+    case '<':
+    case '>':
+    case '=':
+    case '!':
+        return NanoMorphoParser.OP5;
+    case '+':
+    case '-':
+        return NanoMorphoParser.OP6;
+    case '*':
+    case '/':
+    case '%':
+        return NanoMorphoParser.OP7;
+    }
+    throw new Error("This can't happen");
 }
 
 ";;;".*$ {
@@ -247,6 +292,6 @@ _OPNAME=[:&|<>=+\-*/%!?~\^]+
 }
 
 . {
-	yylval = yytext();
-	return YYERRCODE;
+    lexeme2 = yytext();
+    return NanoMorphoParser.YYERRCODE;
 }
