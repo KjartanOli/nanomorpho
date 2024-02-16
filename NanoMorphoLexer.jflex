@@ -138,8 +138,8 @@ private static String tokname( int tok )
         return "IF";
     case NanoMorphoParser.ELSE:
         return "ELSE";
-    case NanoMorphoParser.ELSIF:
-        return "ELSIF";
+    case NanoMorphoParser.ELSEIF:
+        return "ELSEIF";
     case NanoMorphoParser.WHILE:
         return "WHILE";
     case NanoMorphoParser.VAR:
@@ -225,9 +225,9 @@ _OPNAME=[\+\-*/!%&=><\:\^\~&|?]+
     return NanoMorphoParser.ELSE;
 }
 
-"elsif" {
+"elseif" {
     lexeme2 = yytext();
-    return NanoMorphoParser.ELSIF;
+    return NanoMorphoParser.ELSEIF;
 }
 
 "while" {

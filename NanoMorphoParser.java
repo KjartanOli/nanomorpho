@@ -7,7 +7,7 @@ public class NanoMorphoParser
     final static int EOF = 0;
     final static int IF = 1001;
     final static int ELSE = 1002;
-    final static int ELSIF = 1003;
+    final static int ELSEIF = 1003;
     final static int WHILE = 1004;
     final static int VAR = 1005;
     final static int RETURN = 1006;
@@ -95,7 +95,7 @@ public class NanoMorphoParser
     static Vector<Object[]> program() throws Exception {
 			while (getToken() != EOF)
 				function();
-			return null;
+		return new Vector<Object[]>();
 	}
 
 	static Object[] function() throws Exception {
@@ -104,7 +104,6 @@ public class NanoMorphoParser
 
 		over(FUN);
 		var name = over(NAME);
-		System.err.printf("Function: %s%n", name);
 		over('(');
 		parameter_list();
 		over(')');
@@ -137,7 +136,7 @@ public class NanoMorphoParser
 	static Object[] function_body() throws Exception {
 		over('{');
 		declaration_list();
-		while (getToken() == '}') {
+		while (getToken() != '}') {
 			expr();
 			over(';');
 		}
@@ -236,23 +235,22 @@ public class NanoMorphoParser
     // if-expression syntax without 'elsif'
     //
     // ifexpr = 'if', expr, body, [ 'else', ( ifexpr | body ) ] ;
-    static Object[] ifexpr() throws Exception {
-		over(IF);
-		Object[] cond = expr();
-		Object[] thenpart = body();
-		if( getToken() != ELSE )
-			return new Object[]{"IF1",cond,thenpart};
-		over(ELSE);
-		if( getToken() == IF )
-			return new Object[]{"IF2",cond,thenpart,ifexpr()};
-		else if( getToken() == '{' )
-			return new Object[]{"IF2",cond,thenpart,body()};
-		else
-			expected("'if' or '{' following 'else'");
-		throw new Error("This can't happen");
-	}
+    // static Object[] ifexpr() throws Exception {
+	// 	over(IF);
+	// 	Object[] cond = expr();
+	// 	Object[] thenpart = body();
+	// 	if( getToken() != ELSE )
+	// 		return new Object[]{"IF1",cond,thenpart};
+	// 	over(ELSE);
+	// 	if( getToken() == IF )
+	// 		return new Object[]{"IF2",cond,thenpart,ifexpr()};
+	// 	else if( getToken() == '{' )
+	// 		return new Object[]{"IF2",cond,thenpart,body()};
+	// 	else
+	// 		expected("'if' or '{' following 'else'");
+	// 	throw new Error("This can't happen");
+	// }
 
-    /*
     // Alternative syntax with 'elsif'.
        // Slightly more complicated and requires that
        // the caller verifies beforehand that 'if'
@@ -260,19 +258,21 @@ public class NanoMorphoParser
 
     // ifexpr = 'if', expr, body, [ ifrest ] ;
        // ifrest = 'else', body | 'elsif', expr, body, [ ifrest ] ;
-       static Object[] ifexpr() throws Exception
-       {
-       if( getToken() == ELSIF ) over(ELSIF) else over(IF);
-       Object[] cond = expr();
-       Object[] thenpart = body();
-       if( getToken() != ELSE && getToken() != ELSIF )
-       return new Object[]{"IF1",cond,thenpart};
-       if( getToken() == ELSIF )
-       return new Object[]{"IF2",cond,thenpart,ifexpr()};
-       over(ELSE);
-       return new Object[]{"IF2",cond,thenpart,body()};
-       }
-     */
+    static Object[] ifexpr() throws Exception {
+		if( getToken() == ELSEIF )
+			over(ELSEIF);
+		else
+			over(IF);
+
+		Object[] cond = expr();
+		Object[] thenpart = body();
+		if( getToken() != ELSE && getToken() != ELSEIF )
+			return new Object[]{"IF1",cond,thenpart};
+		if( getToken() == ELSEIF )
+			return new Object[]{"IF2",cond,thenpart,ifexpr()};
+		over(ELSE);
+		return new Object[]{"IF2",cond,thenpart,body()};
+    }
 
     static Object[] body() throws Exception {
 		over('{');
