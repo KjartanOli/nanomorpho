@@ -222,6 +222,12 @@ public class NanoMorphoParser
 			case IF:
 				ifexpr();
 				break;
+			case ELSEIF:
+				expected("'if' before 'elseif'");
+				break;
+			case ELSE:
+				expected("'if' before 'else'");
+				break;
 			case WHILE:
 				over(WHILE);
 				expr();
