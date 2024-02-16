@@ -191,11 +191,11 @@ public class NanoMorphoParser
 				over(NAME);
 				if (getToken() == '(') {
 					over('(');
-					if (getToken() == NAME) {
-						over(NAME);
+					if (getToken() != ')') {
+						expr();
 						while (getToken() == ',') {
 							over(',');
-							over(NAME);
+							expr();
 						}
 					}
 					over(')');
