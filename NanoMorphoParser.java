@@ -238,32 +238,13 @@ public class NanoMorphoParser
 		return null;
 	}
 
-    // if-expression syntax without 'elsif'
-    //
-    // ifexpr = 'if', expr, body, [ 'else', ( ifexpr | body ) ] ;
-    // static Object[] ifexpr() throws Exception {
-	// 	over(IF);
-	// 	Object[] cond = expr();
-	// 	Object[] thenpart = body();
-	// 	if( getToken() != ELSE )
-	// 		return new Object[]{"IF1",cond,thenpart};
-	// 	over(ELSE);
-	// 	if( getToken() == IF )
-	// 		return new Object[]{"IF2",cond,thenpart,ifexpr()};
-	// 	else if( getToken() == '{' )
-	// 		return new Object[]{"IF2",cond,thenpart,body()};
-	// 	else
-	// 		expected("'if' or '{' following 'else'");
-	// 	throw new Error("This can't happen");
-	// }
-
     // Alternative syntax with 'elsif'.
-       // Slightly more complicated and requires that
-       // the caller verifies beforehand that 'if'
-       // and 'elsif' are used in their proper places.
+    // Slightly more complicated and requires that
+    // the caller verifies beforehand that 'if'
+    // and 'elsif' are used in their proper places.
 
     // ifexpr = 'if', expr, body, [ ifrest ] ;
-       // ifrest = 'else', body | 'elsif', expr, body, [ ifrest ] ;
+    // ifrest = 'else', body | 'elsif', expr, body, [ ifrest ] ;
     static Object[] ifexpr() throws Exception {
 		if( getToken() == ELSEIF )
 			over(ELSEIF);
