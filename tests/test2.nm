@@ -1,0 +1,10 @@
+fun f() {
+	if b(a, b, c + 2) {a;}
+	else {
+		a;
+	};
+}
+
+fun g(a, b) {
+	return x(a + b, f());
+}

@@ -1,0 +1,8 @@
+fun f(a) {
+  else {
+    return a;
+  }
+  if b {
+    return b;
+  }
+}

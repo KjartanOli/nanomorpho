@@ -1,0 +1,34 @@
+fun f(_a, b){
+	var a;
+	return a;
+}
+
+fun g(x) {
+	return x;
+}
+
+fun h(x,y) {
+	return x + y;
+}
+
+fun a() {
+	var x;
+	if ((x)) { y; }
+	elseif (a + b) { x = y; }
+	else { z; };
+}
+
+fun a(g) {
+	while (a) {a;};
+}
+
+fun f() {
+	if b(a, b, c + 2) {a;}
+	else {
+		a;
+	};
+}
+
+fun g(a, b) {
+	return x(a + b, f());
+}
