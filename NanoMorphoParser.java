@@ -3,50 +3,23 @@ import java.util.HashMap;
 
 public class NanoMorphoParser
 {
-    final static int YYERRCODE = -1;
-    final static int EOF = 0;
-    final static int IF = 1001;
-    final static int ELSE = 1002;
-    final static int ELSEIF = 1003;
-    final static int WHILE = 1004;
-    final static int VAR = 1005;
-    final static int RETURN = 1006;
-    final static int NAME = 1007;
-    final static int LITERAL = 1008;
-    final static int OP1 = 1009;
-    final static int OP2 = 1010;
-    final static int OP3 = 1011;
-    final static int OP4 = 1012;
-    final static int OP5 = 1013;
-    final static int OP6 = 1014;
-    final static int OP7 = 1015;
-	final static int FUN = 1016;
-
-    static String advance() throws Exception {
+	static Token advance() throws Exception {
 		return NanoMorphoLexer.advance();
 	}
 
-	static String over( int tok ) throws Exception {
+	static Token over( int tok ) throws Exception {
 		return NanoMorphoLexer.over(tok);
 	}
 
-	static String over( char tok ) throws Exception {
+	static Token over( char tok ) throws Exception {
 		return NanoMorphoLexer.over(tok);
 	}
 
-	static int getToken() {
+	static Token getToken() {
 		return NanoMorphoLexer.getToken();
 	}
 
-	static String getTokenName() {
-		return NanoMorphoLexer.getTokenName();
-	}
-
-	static String getLexeme() {
-		return NanoMorphoLexer.getLexeme();
-	}
-
-	static int getToken2() {
+	static Token getToken2() {
 		return NanoMorphoLexer.getToken2();
 	}
 
@@ -56,14 +29,6 @@ public class NanoMorphoParser
 
 	static int getColumn() {
 		return NanoMorphoLexer.getColumn();
-	}
-
-	static void expected( int tok ) {
-		NanoMorphoLexer.expected(tok);
-	}
-
-	static void expected( char tok ) {
-		NanoMorphoLexer.expected(tok);
 	}
 
 	static void expected( String str ) {
@@ -93,8 +58,8 @@ public class NanoMorphoParser
 	}
 
     static Vector<Object[]> program() throws Exception {
-			while (getToken() != EOF)
-				function();
+		while (getToken().type() != Token.EOF)
+			function();
 		return new Vector<Object[]>();
 	}
 
@@ -102,8 +67,8 @@ public class NanoMorphoParser
 		varCount = 0;
 		varTable = new HashMap<String,Integer>();
 
-		over(FUN);
-		var name = over(NAME);
+		over(Token.FUN);
+		var name = over(Token.NAME);
 		over('(');
 		parameter_list();
 		over(')');
@@ -115,18 +80,18 @@ public class NanoMorphoParser
 	}
 
 	static Object[] parameter_list() throws Exception {
-		if (getToken() != NAME)
+		if (getToken().type() != Token.NAME)
 			return null;
-		over(NAME);
-		while (getToken() == ',') {
+		over(Token.NAME);
+		while (getToken().type() == ',') {
 			over(',');
-			over(NAME);
+			over(Token.NAME);
 		}
 		return null;
 	}
 
 	static Object[] declaration_list() throws Exception {
-		while (getToken() == VAR) {
+		while (getToken().type() == Token.VAR) {
 			decl();
 			over(';');
 		}
@@ -136,7 +101,7 @@ public class NanoMorphoParser
 	static Object[] function_body() throws Exception {
 		over('{');
 		declaration_list();
-		while (getToken() != '}') {
+		while (getToken().type() != '}') {
 			expr();
 			over(';');
 		}
@@ -144,31 +109,31 @@ public class NanoMorphoParser
 		return null;
 	}
 
-    // decl = 'var', NAME, { ',' NAME } ;
+    // decl = 'var', Token.NAME, { ',' Token.NAME } ;
     static void decl() throws Exception
     {
-			over(VAR);
-			addVar(over(NAME));
-			while( getToken() == ',' )
+			over(Token.VAR);
+			addVar(over(Token.NAME).lexeme());
+			while( getToken().type() == ',' )
 				{
 					over(',');
-					addVar(over(NAME));
+					addVar(over(Token.NAME).lexeme());
 				}
 		}
 
     static Object[] expr() throws Exception
     {
-			if (getToken() == RETURN) {
-				over(RETURN);
+			if (getToken().type() == Token.RETURN) {
+				over(Token.RETURN);
 				expr();
 			}
-			else if (getToken() == NAME && getToken2() == '=') {
-				over(NAME);
+			else if (getToken().type() == Token.NAME && getToken2().type() == '=') {
+				over(Token.NAME);
 				over('=');
 				expr();
 			}
 			else {
-				binopexpr(OP1);
+				binopexpr(Token.OP1);
 			}
 			return null;
 		}
@@ -178,7 +143,7 @@ public class NanoMorphoParser
     // distinguish priorities of operators
     static Object[] binopexpr( int pri ) throws Exception {
 		smallexpr();
-		while (OP1 <= getToken() && getToken() <= OP7) {
+		while (Token.OP1 <= getToken().type() && getToken().type() <= Token.OP7) {
 			advance();
 			smallexpr();
 		}
@@ -186,14 +151,14 @@ public class NanoMorphoParser
 	}
 
     static Object[] smallexpr() throws Exception {
-		switch (getToken()) {
-			case NAME:
-				over(NAME);
-				if (getToken() == '(') {
+		switch (getToken().type()) {
+			case Token.NAME:
+				over(Token.NAME);
+				if (getToken().type() == '(') {
 					over('(');
-					if (getToken() != ')') {
+					if (getToken().type() != ')') {
 						expr();
-						while (getToken() == ',') {
+						while (getToken().type() == ',') {
 							over(',');
 							expr();
 						}
@@ -201,35 +166,35 @@ public class NanoMorphoParser
 					over(')');
 				}
 				break;
-			case OP1:
-			case OP2:
-			case OP3:
-			case OP4:
-			case OP5:
-			case OP6:
-			case OP7:
+			case Token.OP1:
+			case Token.OP2:
+			case Token.OP3:
+			case Token.OP4:
+			case Token.OP5:
+			case Token.OP6:
+			case Token.OP7:
 				advance();
 				smallexpr();
 				break;
-			case LITERAL:
-				over(LITERAL);
+			case Token.LITERAL:
+				over(Token.LITERAL);
 				break;
 			case '(':
 				over('(');
 				expr();
 				over(')');
 				break;
-			case IF:
+			case Token.IF:
 				ifexpr();
 				break;
-			case ELSEIF:
+			case Token.ELSEIF:
 				expected("'if' before 'elseif'");
 				break;
-			case ELSE:
+			case Token.ELSE:
 				expected("'if' before 'else'");
 				break;
-			case WHILE:
-				over(WHILE);
+			case Token.WHILE:
+				over(Token.WHILE);
 				expr();
 				body();
 				break;
@@ -246,18 +211,18 @@ public class NanoMorphoParser
     // ifexpr = 'if', expr, body, [ ifrest ] ;
     // ifrest = 'else', body | 'elsif', expr, body, [ ifrest ] ;
     static Object[] ifexpr() throws Exception {
-		if( getToken() == ELSEIF )
-			over(ELSEIF);
+		if( getToken().type() == Token.ELSEIF )
+			over(Token.ELSEIF);
 		else
-			over(IF);
+			over(Token.IF);
 
 		Object[] cond = expr();
 		Object[] thenpart = body();
-		if( getToken() != ELSE && getToken() != ELSEIF )
+		if( getToken().type() != Token.ELSE && getToken().type() != Token.ELSEIF )
 			return new Object[]{"IF1",cond,thenpart};
-		if( getToken() == ELSEIF )
+		if( getToken().type() == Token.ELSEIF )
 			return new Object[]{"IF2",cond,thenpart,ifexpr()};
-		over(ELSE);
+		over(Token.ELSE);
 		return new Object[]{"IF2",cond,thenpart,body()};
     }
 
@@ -265,7 +230,7 @@ public class NanoMorphoParser
 		over('{');
 		expr();
 		over(';');
-		while (getToken() != '}') {
+		while (getToken().type() != '}') {
 			expr();
 			over(';');
 		}
@@ -325,7 +290,7 @@ public class NanoMorphoParser
 		try {
 			NanoMorphoLexer.startLexer(args[0]);
 			code = program();
-			if( getToken() != EOF ) expected("end of file");
+			if(getToken().type() != Token.EOF) expected("end of file");
 		}
 		catch(Throwable e) {
 			System.out.println(e.getMessage());

@@ -48,8 +48,8 @@ private static NanoMorphoLexer lexer;
 // returns the appropriate token and also updates
 // the variable lexeme2 to contain the underlying
 // lexeme.
-private static int token1, token2;
-private static String lexeme1, lexeme2;
+private static Token token1, token2;
+private static String lexeme2;
 private static int line1, column1, line2, column2;
 
 public static void startLexer( String filename ) throws Exception
@@ -60,25 +60,27 @@ public static void startLexer( String filename ) throws Exception
 public static void startLexer( Reader r ) throws Exception
 {
     lexer = new NanoMorphoLexer(r);
-    token1 = lexer.yylex(); // changes lexeme2
-    lexeme1 = lexeme2;
+    int type = lexer.yylex();
+    String lexeme = lexeme2;
+    token1 = new Token(type, lexeme);
     line1 = lexer.yyline;
     column1 = lexer.yycolumn;
-    if( token1 == NanoMorphoParser.EOF ) return;
-    token2 = lexer.yylex(); // changes lexeme2
+    if(type == Token.EOF) return;
+    type = lexer.yylex(); // changes lexeme2
+    token2 = new Token(type, lexeme2);
     line2 = lexer.yyline;
     column2 = lexer.yycolumn;
 }
 
-public static String advance() throws Exception
+public static Token advance() throws Exception
 {
-    String res = lexeme1;
+    var res = token1;
     token1 = token2;
-    lexeme1 = lexeme2;
     line1 = line2;
     column1 = column2;
-    if( token2 == NanoMorphoParser.EOF ) return res;
-    token2 = lexer.yylex();
+    if(token2.type() == Token.EOF) return res;
+    int type = lexer.yylex();
+    token2 = new Token(type, lexeme2);
     line2 = lexer.yyline;
     column2 = lexer.yycolumn;
     return res;
@@ -94,92 +96,43 @@ public static int getColumn()
     return column1+1;
 }
 
-public static int getToken()
+public static Token getToken()
 {
     return token1;
 }
 
-public static String getTokenName()
-{
-    return tokname(token1);
-}
-
-public static int getToken2()
+public static Token getToken2()
 {
     return token2;
 }
 
-public static String getLexeme()
-{
-    return lexeme1;
-}
-
 public static void expected( int tok )
 {
-    expected(tokname(tok));
+    expected(Token.name(tok));
 }
 
 public static void expected( char tok )
 {
-    expected("'"+tok+"'");
+    expected(String.format("'%c'", tok));
 }
 
 public static void expected( String tok )
 {
-    throw new Error("Expected "+tok+", found '"+lexeme1+"' near line "+(line1+1)+", column "+(column1+1));
+    throw new Error(String.format("Expected %s, found '%s' near line %d, column %d%n", tok, token1.lexeme(), line1 + 1, column1 + 1));
 }
 
-private static String tokname( int tok )
+public static Token over( int tok ) throws Exception
 {
-    if( tok<1000 ) return "'"+(char)tok+"'";
-    switch( tok )
-    {
-    case NanoMorphoParser.IF:
-        return "IF";
-    case NanoMorphoParser.ELSE:
-        return "ELSE";
-    case NanoMorphoParser.ELSEIF:
-        return "ELSEIF";
-    case NanoMorphoParser.WHILE:
-        return "WHILE";
-    case NanoMorphoParser.VAR:
-        return "VAR";
-    case NanoMorphoParser.RETURN:
-        return "RETURN";
-    case NanoMorphoParser.NAME:
-        return "NAME";
-    case NanoMorphoParser.LITERAL:
-        return "LITERAL";
-    case NanoMorphoParser.OP1:
-        return "OP1";
-    case NanoMorphoParser.OP2:
-        return "OP2";
-    case NanoMorphoParser.OP3:
-        return "OP3";
-    case NanoMorphoParser.OP4:
-        return "OP4";
-    case NanoMorphoParser.OP5:
-        return "OP5";
-    case NanoMorphoParser.OP6:
-        return "OP6";
-    case NanoMorphoParser.OP7:
-        return "OP7";
-    }
-    throw new Error();
-}
-
-public static String over( int tok ) throws Exception
-{
-    if( token1!=tok ) expected(tok);
-    String res = lexeme1;
+    if(token1.type() != tok) expected(tok);
+    var res = token1;
     advance();
     return res;
 }
 
-public static String over( char tok ) throws Exception
+public static Token over( char tok ) throws Exception
 {
-    if( token1!=tok ) expected(tok);
-    String res = lexeme1;
+    if(token1.type() != tok) expected(tok);
+    var res = token1;
     advance();
     return res;
 }
@@ -212,47 +165,47 @@ _OPNAME=[\+\-*/!%&=><\:\^\~&|?]+
 
 {_STRING} | {_FLOAT} | {_CHAR} | {_INT} | null | true | false {
     lexeme2 = yytext();
-    return NanoMorphoParser.LITERAL;
+    return Token.LITERAL;
 }
 
 "if" {
     lexeme2 = yytext();
-    return NanoMorphoParser.IF;
+    return Token.IF;
 }
 
 "else" {
     lexeme2 = yytext();
-    return NanoMorphoParser.ELSE;
+    return Token.ELSE;
 }
 
 "elseif" {
     lexeme2 = yytext();
-    return NanoMorphoParser.ELSEIF;
+    return Token.ELSEIF;
 }
 
 "while" {
     lexeme2 = yytext();
-    return NanoMorphoParser.WHILE;
+    return Token.WHILE;
 }
 
 "var" {
     lexeme2 = yytext();
-    return NanoMorphoParser.VAR;
+    return Token.VAR;
 }
 
 "fun" {
 	lexeme2 = yytext();
-	return NanoMorphoParser.FUN;
+	return Token.FUN;
 }
 
 "return" {
     lexeme2 = yytext();
-    return NanoMorphoParser.RETURN;
+    return Token.RETURN;
 }
 
 {_NAME} {
     lexeme2 = yytext();
-    return NanoMorphoParser.NAME;
+    return Token.NAME;
 }
 
 {_OPNAME} {
@@ -262,25 +215,25 @@ _OPNAME=[\+\-*/!%&=><\:\^\~&|?]+
     case '?':
     case '~':
     case '^':
-        return NanoMorphoParser.OP1;
+        return Token.OP1;
     case ':':
-        return NanoMorphoParser.OP2;
+        return Token.OP2;
     case '|':
-        return NanoMorphoParser.OP3;
+        return Token.OP3;
     case '&':
-        return NanoMorphoParser.OP4;
+        return Token.OP4;
     case '<':
     case '>':
     case '=':
     case '!':
-        return NanoMorphoParser.OP5;
+        return Token.OP5;
     case '+':
     case '-':
-        return NanoMorphoParser.OP6;
+        return Token.OP6;
     case '*':
     case '/':
     case '%':
-        return NanoMorphoParser.OP7;
+        return Token.OP7;
     }
     throw new Error("This can't happen");
 }
@@ -293,5 +246,5 @@ _OPNAME=[\+\-*/!%&=><\:\^\~&|?]+
 
 . {
     lexeme2 = yytext();
-    return NanoMorphoParser.YYERRCODE;
+    return Token.YYERRCODE;
 }
