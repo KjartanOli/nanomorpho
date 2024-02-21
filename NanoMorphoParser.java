@@ -35,6 +35,38 @@ public class NanoMorphoParser
 		NanoMorphoLexer.expected(str);
 	}
 
+	static class Expr {
+		public final String type;
+		public final Object[] args;
+		public Expr(String type, Object[] args) {
+			this.type = type;
+			this.args = args;
+		}
+	}
+
+	private static class FunctionBody {
+		public final int declc;
+		public final Expr[] body;
+
+		public FunctionBody(int declc, Expr[] body) {
+			this.declc = declc;
+			this.body = body;
+		}
+	}
+
+	static class Function {
+		public final String name;
+		public final int argc;
+		public final int localc;
+		public final Expr[] body;
+		public Function(String name, int argc, int localc, Expr[] body) {
+			this.name = name;
+			this.argc = argc;
+			this.localc = localc;
+			this.body = body;
+		}
+	}
+
     // You will not need the symbol table until you do the compiler proper.
     // The symbol table consists of the following two variables.
     private static int varCount;
@@ -57,115 +89,133 @@ public class NanoMorphoParser
 		return res;
 	}
 
-    static Vector<Object[]> program() throws Exception {
+    static Vector<Function> program() throws Exception {
+		var res = new Vector<Function>();
 		while (getToken().type() != Token.EOF)
-			function();
-		return new Vector<Object[]>();
+			res.add(function());
+		return res;
 	}
 
-	static Object[] function() throws Exception {
+	static Function function() throws Exception {
 		varCount = 0;
 		varTable = new HashMap<String,Integer>();
 
 		over(Token.FUN);
 		var name = over(Token.NAME);
 		over('(');
-		parameter_list();
+		var params = parameter_list();
 		over(')');
-		function_body();
+		var body = function_body();
 
 		// We're done with this symbol table so we'll erase it
 		varTable = null;
-		return null;
+		return new Function(name.lexeme(), params, (Integer) body.declc, body.body);
 	}
 
-	static Object[] parameter_list() throws Exception {
+	static int parameter_list() throws Exception {
+		int argc = 0;
 		if (getToken().type() != Token.NAME)
-			return null;
-		over(Token.NAME);
+			return argc;
+
+		var params = new Vector<Object>();
+		var name = over(Token.NAME);
+		++argc;
+		addVar(name.lexeme());
 		while (getToken().type() == ',') {
 			over(',');
-			over(Token.NAME);
+			name = over(Token.NAME);
+			addVar(name.lexeme());
+			++argc;
 		}
-		return null;
+		return argc;
 	}
 
-	static Object[] declaration_list() throws Exception {
+	static Integer declaration_list() throws Exception {
+		int count = 0;
 		while (getToken().type() == Token.VAR) {
-			decl();
+			count += decl();
 			over(';');
 		}
-		return null;
+		return count;
 	}
 
-	static Object[] function_body() throws Exception {
+	static FunctionBody function_body() throws Exception {
 		over('{');
-		declaration_list();
+		var locals = declaration_list();
+		var exprs = new Vector<Expr>();
 		while (getToken().type() != '}') {
-			expr();
+			exprs.add(expr());
 			over(';');
 		}
 		over('}');
-		return null;
+		return new FunctionBody(locals, exprs.toArray(new Expr[]{}));
 	}
 
     // decl = 'var', Token.NAME, { ',' Token.NAME } ;
-    static void decl() throws Exception
-    {
-			over(Token.VAR);
+    static int decl() throws Exception {
+		int count = 1;
+		over(Token.VAR);
+		addVar(over(Token.NAME).lexeme());
+		while( getToken().type() == ',' ) {
+			over(',');
 			addVar(over(Token.NAME).lexeme());
-			while( getToken().type() == ',' )
-				{
-					over(',');
-					addVar(over(Token.NAME).lexeme());
-				}
+			++count;
 		}
 
-    static Object[] expr() throws Exception
-    {
-			if (getToken().type() == Token.RETURN) {
-				over(Token.RETURN);
-				expr();
-			}
-			else if (getToken().type() == Token.NAME && getToken2().type() == '=') {
-				over(Token.NAME);
-				over('=');
-				expr();
-			}
-			else {
-				binopexpr(Token.OP1);
-			}
-			return null;
+		return count;
+	}
+
+    static Expr expr() throws Exception {
+		if (getToken().type() == Token.RETURN) {
+			over(Token.RETURN);
+			return new Expr("RETURN", new Object[] {expr()});
 		}
+		else if (getToken().type() == Token.NAME && getToken2().type() == '=') {
+			var name = over(Token.NAME);
+			var pos = findVar(name.lexeme());
+			over('=');
+			return new Expr("STORE", new Object[]{pos, expr()});
+		}
+		else {
+			return binopexpr(Token.OP1);
+		}
+	}
 
     // For the parser you do not need the pri argument and
     // in the compiler you only need it if you wish to
     // distinguish priorities of operators
-    static Object[] binopexpr( int pri ) throws Exception {
-		smallexpr();
+    static Expr binopexpr( int pri ) throws Exception {
+		var left = smallexpr();
+		if (left == null)
+			expected("Something");
+		Token op = null;
+		Expr right = null;
 		while (Token.OP1 <= getToken().type() && getToken().type() <= Token.OP7) {
-			advance();
-			smallexpr();
+			op = advance();
+			right = smallexpr();
+			left = new Expr("CALL", new Object[]{op.lexeme(), new Expr[]{left, right}});
 		}
-		return null;
+		return left;
 	}
 
-    static Object[] smallexpr() throws Exception {
+    static Expr smallexpr() throws Exception {
 		switch (getToken().type()) {
 			case Token.NAME:
-				over(Token.NAME);
+				var name = over(Token.NAME);
 				if (getToken().type() == '(') {
 					over('(');
+					var args = new Vector<Expr>();
 					if (getToken().type() != ')') {
-						expr();
+						args.add(expr());
 						while (getToken().type() == ',') {
 							over(',');
-							expr();
+							args.add(expr());
 						}
 					}
 					over(')');
+					return new Expr("CALL", new Object[]{name.lexeme(), args.toArray(new Expr[]{})});
 				}
-				break;
+				return new Expr("FETCH", new Object[]{findVar(name.lexeme())});
 			case Token.OP1:
 			case Token.OP2:
 			case Token.OP3:
@@ -173,20 +223,18 @@ public class NanoMorphoParser
 			case Token.OP5:
 			case Token.OP6:
 			case Token.OP7:
-				advance();
-				smallexpr();
-				break;
+				var op = advance();
+				return new Expr("CALL", new Object[] {op.lexeme(), smallexpr()});
 			case Token.LITERAL:
-				over(Token.LITERAL);
-				break;
+				var token = over(Token.LITERAL);
+				return new Expr("LITERAL", new Object[] {token.lexeme()});
 			case '(':
 				over('(');
-				expr();
+				var res = expr();
 				over(')');
-				break;
+				return res;
 			case Token.IF:
-				ifexpr();
-				break;
+				return ifexpr();
 			case Token.ELSEIF:
 				expected("'if' before 'elseif'");
 				break;
@@ -195,9 +243,9 @@ public class NanoMorphoParser
 				break;
 			case Token.WHILE:
 				over(Token.WHILE);
-				expr();
-				body();
-				break;
+				var test = expr();
+				var body = body();
+				return new Expr("WHILE", new Object[] {test, body});
 		}
 		//...
 		return null;
@@ -210,41 +258,42 @@ public class NanoMorphoParser
 
     // ifexpr = 'if', expr, body, [ ifrest ] ;
     // ifrest = 'else', body | 'elsif', expr, body, [ ifrest ] ;
-    static Object[] ifexpr() throws Exception {
+    static Expr ifexpr() throws Exception {
 		if( getToken().type() == Token.ELSEIF )
 			over(Token.ELSEIF);
 		else
 			over(Token.IF);
 
-		Object[] cond = expr();
-		Object[] thenpart = body();
+		var cond = expr();
+		var thenpart = body();
 		if( getToken().type() != Token.ELSE && getToken().type() != Token.ELSEIF )
-			return new Object[]{"IF1",cond,thenpart};
+			return new Expr("IF1", new Object[]{cond,thenpart});
 		if( getToken().type() == Token.ELSEIF )
-			return new Object[]{"IF2",cond,thenpart,ifexpr()};
+			return new Expr("IF2", new Object[]{cond,thenpart,ifexpr()});
 		over(Token.ELSE);
-		return new Object[]{"IF2",cond,thenpart,body()};
+		return new Expr("IF2", new Object[]{cond,thenpart,body()});
     }
 
-    static Object[] body() throws Exception {
+    static Expr body() throws Exception {
+		var res = new Vector<Expr>();
 		over('{');
-		expr();
+		res.add(expr());
 		over(';');
 		while (getToken().type() != '}') {
-			expr();
+			res.add(expr());
 			over(';');
 		}
 		over('}');
-		return null;
+		return new Expr("BODY", res.toArray());
 	}
 
     // None of the following is needed in the parser
-    static void generateProgram( String filename, Vector<Object[]> funs ) {
+    static void generateProgram( String filename, Vector<Function> funs ) {
 		String programname = filename.substring(0,filename.lastIndexOf('.'));
 		emit("\"%s.mexe\" = main in",programname);
 		emit("!");
 		emit("{{");
-		for( Object[] f: funs ) generateFunction(f);
+		for( var f: funs ) generateFunction(f);
 		emit("}}");
 		emit("*");
 		emit("BASIS;");
@@ -255,8 +304,17 @@ public class NanoMorphoParser
 		System.out.println();
 	}
 
-    static void generateFunction( Object[] fun ) {
-		//...
+    static void generateFunction( Function fun ) {
+		emit("#\"%s[f%d]\" = ", fun.name, fun.argc);
+		emit("[");
+		if (fun.localc > 0) {
+			emit("(MakeVal null)");
+			for (var i = 0; i < fun.localc; ++i)
+				emit("(Push)");
+		}
+		for (var expr : fun.body)
+			generateExpr(expr);
+		emit("];");
 	}
 
     // All existing labels, i.e. labels the generated
@@ -277,16 +335,126 @@ public class NanoMorphoParser
 		return "_"+(nextLab++);
 	}
 
-	static void generateExpr( Object[] e ) {
-		//...
+	static void generateExpr( Expr e ) {
+		if (e == null)
+			return;
+		var type = e.type;
+		if (type == "RETURN") {
+			generateReturn(e);
+		}
+		if (type == "STORE") {
+			var pos = (Integer) e.args[0];
+			generateExpr((Expr) e.args[1]);
+			emit("(Store %d)", pos);
+		}
+		if (type == "FETCH") {
+			var pos = (Integer) e.args[0];
+			emit("(Fetch %d)", pos);
+		}
+		if (type == "LITERAL") {
+			emit("(MakeVal %s)", (String) e.args[0]);
+		}
+		if (type == "CALL") {
+			generateFuncall(e);
+		}
+		if (type == "IF1") {
+			generateIF1(e);
+		}
+		if (type == "IF2") {
+			generateIF2(e);
+		}
+		if (type == "BODY") {
+			generateBody(e);
+		}
+		if (type == "WHILE") {
+			generateWhile(e);
+		}
 	}
 
-	static void generateBody( Object[] bod ) {
-		//...
+	static void generateBody( Expr bod ) {
+		var exprs = bod.args;
+		for (var expr : exprs)
+			generateExpr((Expr) expr);
+	}
+
+	static void generateWhile(Expr e) {
+		var cond = (Expr) e.args[0];
+		var body = (Expr) e.args[1];
+
+		var startLab = newLabel();
+		var endLab = newLabel();
+
+		emit("%s", startLab);
+		generateExpr(cond);
+		emit("(GoFalse %s)", endLab);
+		generateBody(body);
+		emit("(Go %s)", startLab);
+		emit("%s", endLab);
+	}
+
+	static void generateIF1(Expr e) {
+		var cond = (Expr) e.args[0];
+		var body = (Expr) e.args[1];
+
+		var lab = newLabel();
+		generateExpr(cond);
+		emit("(GoFalse %s)", lab);
+		generateExpr(body);
+		emit("%s", lab);
+	}
+
+	static void generateIF2(Expr e) {
+		var cond = (Expr) e.args[0];
+		var then = (Expr) e.args[1];
+		var body = (Expr) e.args[2];
+
+		var elseLab = newLabel();
+		var endLab = newLabel();
+
+		generateExpr(cond);
+		emit("(GoFalse %s)", elseLab);
+		generateExpr(then);
+		emit("(Go %s)", endLab);
+		emit("%s", elseLab);
+		generateExpr(body);
+		emit("%s", endLab);
+	}
+
+	static void generateReturn(Expr e) {
+		var val = (Expr) e.args[0];
+		if (val.type == "FETCH") {
+			var pos = (Integer) val.args[0];
+			emit("(FetchR %d)", pos);
+		}
+		else if (val.type == "CALL") {
+			generateFuncall(val, true);
+		}
+		else {
+			generateExpr(val);
+			emit("(Return)");
+		}
+	}
+
+	static void generateFuncall(Expr fun) {
+		generateFuncall(fun, false);
+	}
+
+	static void generateFuncall(Expr fun, boolean tailCall) {
+		var name = (String) fun.args[0];
+		var args = (Object[]) fun.args[1];
+		var argc = args.length;
+		for (var arg : args){
+			generateExpr((Expr) arg);
+			emit("(Push)");
+		}
+		if (tailCall)
+			emit("(CallR #\"%s[f%d]\" %d)", name, argc, argc);
+		else
+			emit("(Call #\"%s[f%d]\" %d)", name, argc, argc);
 	}
 
 	static public void main( String[] args ) throws Exception {
-		Vector<Object[]> code = null;
+		Vector<Function> code = null;
 		try {
 			NanoMorphoLexer.startLexer(args[0]);
 			code = program();

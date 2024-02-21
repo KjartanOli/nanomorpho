@@ -1,9 +1,15 @@
 fun f(_a, b){
-	var a;
+	var a, c;
+	a = _a;
+	c = 2;
+	b = "abc";
 	return a;
 }
 
 fun g(x) {
+	if x {
+		x = null;
+	};
 	return x;
 }
 
@@ -12,20 +18,35 @@ fun h(x,y) {
 }
 
 fun a() {
-	var x;
+	var x,y,z;
 	if ((x)) { y; }
-	elseif (a + b) { x = y; }
+	elseif (x + z) { x = y; }
 	else { z; };
 }
 
 fun a(g) {
+	var a;
 	while (a) {a;};
 }
 
 fun f() {
+	var a,b,c;
 	if b(a, b, c + 2) {a;}
 	else {
 		a;
+	};
+}
+
+fun f1() {
+	return 1;
+}
+
+fun f2() {
+	var x;
+	x = 0;
+	f1();
+	while f() {
+		x = x + 1;
 	};
 }
 
