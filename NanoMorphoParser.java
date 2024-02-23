@@ -478,12 +478,12 @@ public class NanoMorphoParser
 		var startLab = newLabel();
 		var endLab = newLabel();
 
-		emit("%s", startLab);
+		emit("%s:", startLab);
 		generateExpr(cond);
 		emit("(GoFalse %s)", endLab);
 		generateBody(body);
 		emit("(Go %s)", startLab);
-		emit("%s", endLab);
+		emit("%s:", endLab);
 	}
 
 	static void generateIF1(Expr e) {
@@ -494,7 +494,7 @@ public class NanoMorphoParser
 		generateExpr(cond);
 		emit("(GoFalse %s)", lab);
 		generateExpr(body);
-		emit("%s", lab);
+		emit("%s:", lab);
 	}
 
 	static void generateIF2(Expr e) {
@@ -509,9 +509,9 @@ public class NanoMorphoParser
 		emit("(GoFalse %s)", elseLab);
 		generateExpr(then);
 		emit("(Go %s)", endLab);
-		emit("%s", elseLab);
+		emit("%s:", elseLab);
 		generateExpr(body);
-		emit("%s", endLab);
+		emit("%s:", endLab);
 	}
 
 	static void generateReturn(Expr e) {
