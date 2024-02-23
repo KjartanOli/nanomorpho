@@ -1,5 +1,6 @@
 import java.util.Vector;
 import java.util.HashMap;
+import java.util.Arrays;
 
 public class NanoMorphoParser
 {
@@ -35,12 +36,171 @@ public class NanoMorphoParser
 		NanoMorphoLexer.expected(str);
 	}
 
-	static class Expr {
-		public final String type;
-		public final Object[] args;
-		public Expr(String type, Object[] args) {
-			this.type = type;
+	enum ExprType {
+		LITERAL,
+		RETURN,
+		CALL,
+		STORE,
+		FETCH,
+		IF1,
+		IF2,
+		BODY,
+		WHILE,
+		OR,
+		AND,
+		NOT
+	}
+
+	interface Expr {
+		public ExprType type();
+	}
+
+	static class Literal implements Expr {
+		public final String value;
+
+		public Literal(String value) { this.value = value; }
+		public ExprType type() { return ExprType.LITERAL; }
+		public String toString() { return this.value; }
+	}
+
+	static class Call implements Expr {
+		public final String function;
+		public final Expr[] args;
+
+		public Call(String function, Expr[] args) {
+			this.function = function;
 			this.args = args;
+		}
+
+		public ExprType type() { return ExprType.CALL; }
+		public String toString() {
+			return String.format("%s%s", this.function, Arrays.toString(this.args));
+		}
+	}
+
+	static class Return implements Expr {
+		public final Expr value;
+
+		public Return(Expr value) { this.value = value; }
+		public ExprType type() { return ExprType.RETURN; }
+		public String toString() {
+			return String.format("Return [%s]", value);
+		}
+	}
+
+	static class If implements Expr {
+		public final Expr cond;
+		public final Body thenpart;
+		public final Body elsepart;
+
+		public If(Expr cond, Body thenpart) {
+			this(cond, thenpart, null);
+		}
+
+		public If(Expr cond, Body thenpart, Body elsepart) {
+			this.cond = cond;
+			this.thenpart = thenpart;
+			this.elsepart = elsepart;
+		}
+
+		public ExprType type () {
+			return (this.elsepart == null) ? ExprType.IF1 : ExprType.IF2;
+		}
+		public String toString() {
+			if (this.elsepart == null)
+				return String.format("If [%s] {%s}", this.cond, this.thenpart);
+			else
+				return String.format("If [%s] {%s} else {%s}", this.cond, this.thenpart, this.elsepart);
+		}
+	}
+
+	static class Body implements Expr {
+		public final Expr[] exprs;
+
+		public Body(Expr[] exprs) { this.exprs = exprs; }
+		public ExprType type() { return ExprType.BODY; }
+		public String toString() {
+			return Arrays.toString(this.exprs);
+		}
+	}
+
+	static class Fetch implements Expr {
+		public final int pos;
+
+		public Fetch(int pos) { this.pos = pos; }
+		public ExprType type() { return ExprType.FETCH; }
+		public String toString() {
+			return String.format("Fetch %d", this.pos);
+		}
+	}
+
+	static class Store implements Expr {
+		public final int pos;
+		public final Expr value;
+
+		public Store(int pos, Expr value) {
+			this.pos = pos;
+			this.value = value;
+		}
+
+		public ExprType type() { return ExprType.STORE; }
+		public String toString() {
+			return String.format("Store %d [%s]", this.pos, this.value);
+		}
+	}
+
+	static class While implements Expr {
+		public final Expr cond;
+		public final Body body;
+
+		public While(Expr cond, Body body) {
+			this.cond = cond;
+			this.body = body;
+		}
+
+		public ExprType type() { return ExprType.WHILE; }
+		public String toString() {
+			return String.format("While [%s] {%s}", this.cond, this.body);
+		}
+	}
+
+	static class Or implements Expr {
+		public final Expr left;
+		public final Expr right;
+
+		public Or(Expr left, Expr right) {
+			this.left = left;
+			this.right = right;
+		}
+
+		public ExprType type() { return ExprType.OR; }
+		public String toString() {
+			return String.format("Or [%s] [%s]", this.left, this.right);
+		}
+	}
+
+	static class And implements Expr {
+		public final Expr left;
+		public final Expr right;
+
+		public And(Expr left, Expr right) {
+			this.left = left;
+			this.right = right;
+		}
+
+		public ExprType type() { return ExprType.AND; }
+		public String toString() {
+			return String.format("And [%s] [%s]", this.left, this.right);
+		}
+	}
+
+	static class Not implements Expr {
+		public final Expr value;
+
+		public Not(Expr value) { this.value = value; }
+		public ExprType type() { return ExprType.NOT; }
+		public String toString() {
+			return String.format("Not [%s]", this.value);
 		}
 	}
 
@@ -168,13 +328,13 @@ public class NanoMorphoParser
     static Expr expr() throws Exception {
 		if (getToken().type() == Token.RETURN) {
 			over(Token.RETURN);
-			return new Expr("RETURN", new Object[] {expr()});
+			return new Return(expr());
 		}
 		else if (getToken().type() == Token.NAME && getToken2().type() == '=') {
 			var name = over(Token.NAME);
 			var pos = findVar(name.lexeme());
 			over('=');
-			return new Expr("STORE", new Object[]{pos, expr()});
+			return new Store(pos, expr());
 		}
 		else {
 			return orexpr();
@@ -186,7 +346,7 @@ public class NanoMorphoParser
 		if (getToken().type() == Token.OR) {
 			over(Token.OR);
 			var right = orexpr();
-			left = new Expr("OR", new Object[]{left, right});
+			left = new Or(left, right);
 		}
 
 		return left;
@@ -196,7 +356,7 @@ public class NanoMorphoParser
 		var left = notexpr();
 		if (getToken().type() == Token.AND) {
 			var right = notexpr();
-			left = new Expr("AND", new Object[]{left, right});
+			left = new And(left, right);
 		}
 		return left;
 	}
@@ -204,7 +364,7 @@ public class NanoMorphoParser
 	static Expr notexpr() throws Exception {
 		if (getToken().type() == Token.NOT) {
 			over(Token.NOT);
-			return new Expr("NOT", new Object[]{notexpr()});
+			return new Not(notexpr());
 		}
 		return binopexpr1();
 	}
@@ -215,7 +375,7 @@ public class NanoMorphoParser
 			Token op = over(Token.OP1);
 			Expr right = binopexpr2();
 
-			left = new Expr("CALL", new Object[]{op.lexeme(), new Expr[]{left, right}});
+			left = new Call(op.lexeme(), new Expr[]{left, right});
 		}
 		return left;
 	}
@@ -225,7 +385,7 @@ public class NanoMorphoParser
 		if(getToken().type() == Token.OP2) {
 			var op = over(Token.OP2);
 			var right = binopexpr2();
-			return new Expr("CALL", new Object[]{op.lexeme(), new Expr[]{left,right}});
+			return new Call(op.lexeme(), new Expr[]{left,right});
 		}
 		return left;
 	}
@@ -236,7 +396,7 @@ public class NanoMorphoParser
 			Token op = over(Token.OP3);
 			Expr right = binopexpr4();
 
-			left = new Expr("CALL", new Object[]{op.lexeme(), new Expr[]{left, right}});
+			left = new Call(op.lexeme(), new Expr[]{left, right});
 		}
 		return left;
 	}
@@ -247,7 +407,7 @@ public class NanoMorphoParser
 			Token op = over(Token.OP4);
 			Expr right = binopexpr5();
 
-			left = new Expr("CALL", new Object[]{op.lexeme(), new Expr[]{left, right}});
+			left = new Call(op.lexeme(), new Expr[]{left, right});
 		}
 		return left;
 	}
@@ -258,7 +418,7 @@ public class NanoMorphoParser
 			Token op = over(Token.OP5);
 			Expr right = binopexpr6();
 
-			left = new Expr("CALL", new Object[]{op.lexeme(), new Expr[]{left, right}});
+			left = new Call(op.lexeme(), new Expr[]{left, right});
 		}
 		return left;
 	}
@@ -269,7 +429,7 @@ public class NanoMorphoParser
 			Token op = over(Token.OP6);
 			Expr right = binopexpr7();
 
-			left = new Expr("CALL", new Object[]{op.lexeme(), new Expr[]{left, right}});
+			left = new Call(op.lexeme(), new Expr[]{left, right});
 		}
 		return left;
 	}
@@ -280,7 +440,7 @@ public class NanoMorphoParser
 			Token op = over(Token.OP7);
 			Expr right = smallexpr();
 
-			left = new Expr("CALL", new Object[]{op.lexeme(), new Expr[]{left, right}});
+			left = new Call(op.lexeme(), new Expr[]{left, right});
 		}
 		return left;
 	}
@@ -300,12 +460,12 @@ public class NanoMorphoParser
 						}
 					}
 					over(')');
-					return new Expr("CALL", new Object[]{name.lexeme(), args.toArray(new Expr[]{})});
+					return new Call(name.lexeme(), args.toArray(new Expr[]{}));
 				}
-				return new Expr("FETCH", new Object[]{findVar(name.lexeme())});
+				return new Fetch(findVar(name.lexeme()));
 			case Token.LITERAL:
 				var token = over(Token.LITERAL);
-				return new Expr("LITERAL", new Object[] {token.lexeme()});
+				return new Literal(token.lexeme());
 			case '(':
 				over('(');
 				var res = expr();
@@ -320,7 +480,7 @@ public class NanoMorphoParser
 			case Token.OP7:
 				var op = advance();
 				var expr = smallexpr();
-				return new Expr("CALL", new Object[]{op.lexeme(), expr});
+				return new Call(op.lexeme(), new Expr[]{expr});
 			case Token.IF:
 				return ifexpr();
 			case Token.ELSEIF:
@@ -333,7 +493,7 @@ public class NanoMorphoParser
 				over(Token.WHILE);
 				var test = expr();
 				var body = body();
-				return new Expr("WHILE", new Object[] {test, body});
+				return new While(test, body);
 		}
 		expected("something went wrong");
 		return null;
@@ -355,17 +515,16 @@ public class NanoMorphoParser
 		var cond = expr();
 		var thenpart = body();
 		if( getToken().type() != Token.ELSE && getToken().type() != Token.ELSEIF )
-			return new Expr("IF1", new Object[]{cond,thenpart});
-		if( getToken().type() == Token.ELSEIF )
-			return new Expr("IF2", new Object[]{cond,thenpart,ifexpr()});
+			return new If(cond,thenpart);
 		over(Token.ELSE);
-		return new Expr("IF2", new Object[]{cond,thenpart,body()});
+		var t = new If(cond,thenpart,body());
+		return t;
     }
 
-    static Expr body() throws Exception {
+    static Body body() throws Exception {
 		var res = new Vector<Expr>();
 		if (getToken().type() != '{')
-			return new Expr("BODY", new Expr[]{expr()});
+			return new Body(new Expr[]{expr()});
 
 		over('{');
 		res.add(expr());
@@ -375,7 +534,7 @@ public class NanoMorphoParser
 			over(';');
 		}
 		over('}');
-		return new Expr("BODY", res.toArray());
+		return new Body(res.toArray(new Expr[]{}));
 	}
 
     // None of the following is needed in the parser
@@ -428,18 +587,26 @@ public class NanoMorphoParser
 		return "_"+(nextLab++);
 	}
 
-	static void generateLiteral(Expr e, boolean tailpos) {
+	static void generateLiteral(Literal l, boolean tailpos) {
 		if (tailpos)
-			emit("(MakeValP %s)", (String) e.args[0]);
+			emit("(MakeValP %s)", l.value);
 		else
-			emit("(MakeVal %s)", (String) e.args[0]);
+			emit("(MakeVal %s)", l.value);
 	}
 
-	static void generateFetch(int pos, boolean tailpos) {
+	static void generateFetch(Fetch f, boolean tailpos) {
 		if (tailpos)
-			emit("(FetchR %d)", pos);
+			emit("(FetchR %d)", f.pos);
 		else
-			emit("(Fetch %d)", pos);
+			emit("(Fetch %d)", f.pos);
+	}
+
+	static void generateStore(Store s, boolean tailpos) {
+		generateExpr(s.value);
+		if (tailpos)
+			emit("(StoreR %d)", s.pos);
+		else
+			emit("(Store %d)", s.pos);
 	}
 
 	static void generateExpr(Expr e) {
@@ -448,155 +615,135 @@ public class NanoMorphoParser
 
 	static void generateExpr(Expr e, boolean tailpos) {
 		int pos;
-		switch (e.type) {
-			case "RETURN":
-				generateReturn(e);
+		switch (e.type()) {
+			case ExprType.RETURN:
+				generateReturn((Return) e);
 				break;
-			case "STORE":
-				pos = (Integer) e.args[0];
-				generateExpr((Expr) e.args[1]);
-				emit("(Store %d)", pos);
+			case ExprType.STORE:
+				generateStore((Store) e, tailpos);
 				break;
-			case "FETCH":
-				pos = (Integer) e.args[0];
-				generateFetch(pos, tailpos);
+			case ExprType.FETCH:
+				generateFetch((Fetch) e, tailpos);
 				break;
-			case "LITERAL":
-				generateLiteral(e, tailpos);
+			case ExprType.LITERAL:
+				generateLiteral((Literal) e, tailpos);
 				break;
-			case "CALL":
-				generateFuncall(e, tailpos);
+			case ExprType.CALL:
+				generateFuncall((Call) e, tailpos);
 				break;
-			case "IF1":
-				generateIF1(e);
+			case ExprType.IF1:
+				generateIF1((If) e);
 				break;
-			case "IF2":
-				generateIF2(e);
+			case ExprType.IF2:
+				generateIF2((If) e);
 				break;
-			case "BODY":
-				generateBody(e);
+			case ExprType.BODY:
+				generateBody((Body) e);
 				break;
-			case "WHILE":
-				generateWhile(e);
+			case ExprType.WHILE:
+				generateWhile((While) e);
 				break;
-			case "OR":
-				generateOR(e);
+			case ExprType.OR:
+				generateOR((Or) e);
 				break;
-			case "AND":
-				generateAND(e);
+			case ExprType.AND:
+				generateAND((And) e);
 				break;
-			case "NOT":
-				generateNOT(e);
+			case ExprType.NOT:
+				generateNOT((Not) e);
 				break;
 		}
 	}
 
-	static void generateBody( Expr bod ) {
-		var exprs = bod.args;
-		for (var expr : exprs)
-			generateExpr((Expr) expr);
+	static void generateBody(Body body) {
+		for (var expr : body.exprs)
+			generateExpr(expr);
 	}
 
-	static void generateWhile(Expr e) {
-		var cond = (Expr) e.args[0];
-		var body = (Expr) e.args[1];
-
+	static void generateWhile(While w) {
 		var startLab = newLabel();
 		var endLab = newLabel();
 
 		emit("%s:", startLab);
-		generateExpr(cond);
+		generateExpr(w.cond);
 		emit("(GoFalse %s)", endLab);
-		generateBody(body);
+		generateBody(w.body);
 		emit("(Go %s)", startLab);
 		emit("%s:", endLab);
 	}
 
-	static void generateIF1(Expr e) {
-		var cond = (Expr) e.args[0];
-		var body = (Expr) e.args[1];
-
+	static void generateIF1(If i) {
 		var lab = newLabel();
-		generateExpr(cond);
+		generateExpr(i.cond);
 		emit("(GoFalse %s)", lab);
-		generateExpr(body);
+		generateExpr(i.thenpart);
 		emit("%s:", lab);
 	}
 
-	static void generateIF2(Expr e) {
-		var cond = (Expr) e.args[0];
-		var then = (Expr) e.args[1];
-		var body = (Expr) e.args[2];
-
+	static void generateIF2(If i) {
 		var elseLab = newLabel();
 		var endLab = newLabel();
 
-		generateExpr(cond);
+		generateExpr(i.cond);
 		emit("(GoFalse %s)", elseLab);
-		generateExpr(then);
+		generateExpr(i.thenpart);
 		emit("(Go %s)", endLab);
 		emit("%s:", elseLab);
-		generateExpr(body);
+		generateExpr(i.elsepart);
 		emit("%s:", endLab);
 	}
 
-	static void generateReturn(Expr e) {
-		var val = (Expr) e.args[0];
-		if (val.type == "FETCH") {
-			generateFetch((Integer) val.args[0], true);
-		}
-		else if (val.type == "CALL") {
-			generateFuncall(val, true);
-		}
-		else if (val.type == "LITERAL") {
-			generateLiteral(val, true);
-		}
-		else {
-			generateExpr(val);
-			emit("(Return)");
+	static void generateReturn(Return r) {
+		switch (r.value.type()) {
+			case ExprType.FETCH:
+				generateFetch((Fetch) r.value, true);
+				break;
+			case ExprType.CALL:
+				generateFuncall((Call) r.value, true);
+				break;
+			case ExprType.LITERAL:
+				generateLiteral((Literal) r.value, true);
+				break;
+			default:
+				generateExpr(r.value);
+				emit("(Return)");
+				break;
 		}
 	}
 
-	static void generateOR(Expr e) {
-		var left = (Expr) e.args[0];
-		var right = (Expr) e.args[1];
+	static void generateOR(Or o) {
 		var endlab = newLabel();
-		generateExpr(left);
+		generateExpr(o.left);
 		emit("(GoTrue %s)", endlab);
-		generateExpr(right);
+		generateExpr(o.right);
 		emit("%s:", endlab);
 	}
 
-	static void generateAND(Expr e) {
-		var left = (Expr) e.args[0];
-		var right = (Expr) e.args[1];
+	static void generateAND(And a) {
 		var endlab = newLabel();
-		generateExpr(left);
+		generateExpr(a.left);
 		emit("(GoFalse %s)", endlab);
-		generateExpr(right);
+		generateExpr(a.right);
 		emit("%s:", endlab);
 	}
 
-	static void generateNOT(Expr e) {
-		var arg = (Expr) e.args[0];
-		generateExpr(arg);
+	static void generateNOT(Not n) {
+		generateExpr(n.value);
 		emit("(Not)");
 	}
 
-	static void generateFuncall(Expr fun) {
+	static void generateFuncall(Call fun) {
 		generateFuncall(fun, false);
 	}
 
-	static void generateFuncall(Expr fun, boolean tailCall) {
-		var name = (String) fun.args[0];
-		var args = (Object[]) fun.args[1];
-		var argc = args.length;
+	static void generateFuncall(Call c, boolean tailCall) {
+		var argc = c.args.length;
 		if (argc > 0) {
-			generateExpr((Expr) args[0]);
+			generateExpr(c.args[0]);
 			for (var i = 1; i < argc; ++i) {
-				var arg = (Expr) args[i];
-				if (arg.type == "LITERAL") {
-					emit("(MakeValP %s)", (String) arg.args[0]);
+				var arg = c.args[i];
+				if (arg.type() == ExprType.LITERAL) {
+					emit("(MakeValP %s)", ((Literal) arg).value);
 				}
 				else {
 					generateExpr(arg);
@@ -605,9 +752,9 @@ public class NanoMorphoParser
 			}
 		}
 		if (tailCall)
-			emit("(CallR #\"%s[f%d]\" %d)", name, argc, argc);
+			emit("(CallR #\"%s[f%d]\" %d)", c.function, argc, argc);
 		else
-			emit("(Call #\"%s[f%d]\" %d)", name, argc, argc);
+			emit("(Call #\"%s[f%d]\" %d)", c.function, argc, argc);
 	}
 
 	static public void main( String[] args ) throws Exception {
