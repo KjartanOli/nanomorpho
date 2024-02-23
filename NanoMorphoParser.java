@@ -358,7 +358,7 @@ public class NanoMorphoParser
 			for (var i = 0; i < this.body.length - 1; ++i)
 				this.body[i].generate(new GenerationContext(false));
 
-			this.body[this.body.length - 1].generate(new GenerationContext(false));
+			this.body[this.body.length - 1].generate(new GenerationContext(true));
 			emit("];");
 		}
 	}
