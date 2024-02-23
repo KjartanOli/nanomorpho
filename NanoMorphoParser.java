@@ -370,6 +370,9 @@ public class NanoMorphoParser
 
     static Expr body() throws Exception {
 		var res = new Vector<Expr>();
+		if (getToken().type() != '{')
+			return expr();
+
 		over('{');
 		res.add(expr());
 		over(';');
