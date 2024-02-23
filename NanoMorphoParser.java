@@ -536,7 +536,8 @@ public class NanoMorphoParser
 		var args = (Object[]) fun.args[1];
 		var argc = args.length;
 		if (argc > 0) {
-			for (var i = 0; i < argc - 1; ++i) {
+			generateExpr((Expr) args[0]);
+			for (var i = 1; i < argc; ++i) {
 				var arg = (Expr) args[i];
 				if (arg.type == "LITERAL") {
 					emit("(MakeValP %s)", (String) arg.args[0]);
@@ -546,7 +547,6 @@ public class NanoMorphoParser
 					emit("(Push)");
 				}
 			}
-			generateExpr((Expr) args[argc - 1]);
 		}
 		if (tailCall)
 			emit("(CallR #\"%s[f%d]\" %d)", name, argc, argc);
