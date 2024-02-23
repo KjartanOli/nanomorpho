@@ -15,5 +15,10 @@ NanoMorpho.java: NanoMorpho.y
 NanoMorphoLexer.java: NanoMorphoLexer.jflex
 	~/.local/bin/jflex NanoMorphoLexer.jflex
 
-.PHONY test: NanoMorpho.class NanoMorphoLexer.class
+.PHONY: test
+test: NanoMorpho.class NanoMorphoLexer.class
 	java NanoMorpho test.nm
+
+.PHONY: clean
+clean:
+	rm *.class
