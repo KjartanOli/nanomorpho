@@ -184,21 +184,87 @@ public class NanoMorphoParser
     // For the parser you do not need the pri argument and
     // in the compiler you only need it if you wish to
     // distinguish priorities of operators
-    static Expr binopexpr( int pri ) throws Exception {
-		var left = smallexpr();
-		if (left == null)
-			expected("Something");
-		Token op = null;
-		Expr right = null;
-		while (Token.OP1 <= getToken().type() && getToken().type() <= Token.OP7) {
-			op = advance();
-			right = smallexpr();
+	static Expr binopexpr( int pri ) throws Exception {
+		return binopexpr1();
+	}
+
+	static Expr binopexpr1() throws Exception {
+		var left = binopexpr2();
+		while (getToken().type() == Token.OP1) {
+			Token op = over(Token.OP1);
+			Expr right = binopexpr2();
+
+			left = new Expr("CALL", new Object[]{op.lexeme(), new Expr[]{left, right}});
+		}
+		return left;
+    }
+
+	static Expr binopexpr2() throws Exception {
+		Expr left = binopexpr3();
+		if(getToken().type() == Token.OP2) {
+			var op = over(Token.OP2);
+			var right = binopexpr2();
+			return new Expr("CALL", new Object[]{op.lexeme(), new Expr[]{left,right}});
+		}
+		return left;
+	}
+
+	static Expr binopexpr3() throws Exception {
+		var left = binopexpr4();
+		while (getToken().type() == Token.OP3) {
+			Token op = over(Token.OP3);
+			Expr right = binopexpr4();
+
 			left = new Expr("CALL", new Object[]{op.lexeme(), new Expr[]{left, right}});
 		}
 		return left;
 	}
 
-    static Expr smallexpr() throws Exception {
+	static Expr binopexpr4() throws Exception {
+		var left = binopexpr5();
+		while (getToken().type() == Token.OP4) {
+			Token op = over(Token.OP4);
+			Expr right = binopexpr5();
+
+			left = new Expr("CALL", new Object[]{op.lexeme(), new Expr[]{left, right}});
+		}
+		return left;
+	}
+
+	static Expr binopexpr5() throws Exception {
+		var left = binopexpr6();
+		while (getToken().type() == Token.OP5) {
+			Token op = over(Token.OP5);
+			Expr right = binopexpr6();
+
+			left = new Expr("CALL", new Object[]{op.lexeme(), new Expr[]{left, right}});
+		}
+		return left;
+	}
+
+	static Expr binopexpr6() throws Exception {
+		var left = binopexpr7();
+		while (getToken().type() == Token.OP6) {
+			Token op = over(Token.OP6);
+			Expr right = binopexpr7();
+
+			left = new Expr("CALL", new Object[]{op.lexeme(), new Expr[]{left, right}});
+		}
+		return left;
+	}
+
+	static Expr binopexpr7() throws Exception {
+		var left = smallexpr();
+		while (getToken().type() == Token.OP7) {
+			Token op = over(Token.OP7);
+			Expr right = smallexpr();
+
+			left = new Expr("CALL", new Object[]{op.lexeme(), new Expr[]{left, right}});
+		}
+		return left;
+	}
+
+	static Expr smallexpr() throws Exception {
 		switch (getToken().type()) {
 			case Token.NAME:
 				var name = over(Token.NAME);
@@ -216,27 +282,6 @@ public class NanoMorphoParser
 					return new Expr("CALL", new Object[]{name.lexeme(), args.toArray(new Expr[]{})});
 				}
 				return new Expr("FETCH", new Object[]{findVar(name.lexeme())});
-			case Token.OP1:
-			    var op = advance();
-			    return new Expr("CALL", new Object[]{op.lexeme(), binopexpr1()});
-			case Token.OP2:
-			    var op = advance();
-			    return new Expr("CALL", new Object[]{op.lexeme(), binopexpr2()});
-			case Token.OP3:
-			    var op = advance();
-			    return new Expr("CALL", new Object[]{op.lexeme(), binopexpr3()});
-			case Token.OP4:
-			    var op = advance();
-			    return new Expr("CALL", new Object[]{op.lexeme(), binopexpr4()});
-			case Token.OP5:
-			    var op = advance();
-			    return new Expr("CALL", new Object[]{op.lexeme(), binopexpr5()});
-			case Token.OP6:
-			    var op = advance();
-			    return new Expr("CALL", new Object[]{op.lexeme(), binopexpr6()});
-			case Token.OP7:
-				var op = advance();
-				return new Expr("CALL", new Object[] {op.lexeme(), smallexpr()});
 			case Token.LITERAL:
 				var token = over(Token.LITERAL);
 				return new Expr("LITERAL", new Object[] {token.lexeme()});
@@ -245,6 +290,16 @@ public class NanoMorphoParser
 				var res = expr();
 				over(')');
 				return res;
+			case Token.OP1:
+			case Token.OP2:
+			case Token.OP3:
+			case Token.OP4:
+			case Token.OP5:
+			case Token.OP6:
+			case Token.OP7:
+				var op = advance();
+				var expr = smallexpr();
+				return new Expr("CALL", new Object[]{op.lexeme(), expr});
 			case Token.IF:
 				return ifexpr();
 			case Token.ELSEIF:
@@ -262,88 +317,6 @@ public class NanoMorphoParser
 		//...
 		return null;
 	}
-
-    static Expr binopexpr1() throws Exception{
-	Expr left = binopexpr2();
-	if(left = null)
-	    expected("Something");
-	if(Token.OP1 <= getToken().type() && getToken().type <= Token.OP7){
-	    op = aandvance();
-	    right = binopexpr2(),
-		return new Expr("CALL", new Object[]{op.lexeme(), new Expr[]{left,rigth}});
-	}
-	 return left;
-    }
-
-    static Expr binopexpr2() throws Exception{
-	if(getToken().type() == Token.OP1)
-	    expected("OP2 to OP7");
-	Expr left = binopexpr3();
-	if(left = null)
-	    expected("Something");
-	if(Token.OP2 <= getToken().type() && getToken().type <= Token.OP7){
-	    op = andvance();
-	    right = binopexpr3(),
-		return new Expr("CALL", new Object[]{op.lexeme(), new Expr[]{left,rigth}});
-	}
-	 return left;
-    }
-
-    static Expr binopexpr3() throws Exception{
-	if(getToken().type() == Token.OP1 || getToken().type() == Token.OP2)
-	    expected("OP3 to OP7");
-	Expr left = binopexpr4();
-	if(left = null)
-	    expected("Something");
-	if(Token.OP3 <= getToken().type() && getToken().type <= Token.OP7){
-	    op = andvance();
-	    right = binopexpr4(),
-		return new Expr("CALL", new Object[]{op.lexeme(), new Expr[]{left,rigth}});
-	}
-	 return left;
-    }
-
-    static Expr binopexpr4() throws Exception{
-	if(getToken().type() >= Token.OP1 && getToken().type() <= Token.OP3)
-	    expected("OP4 to OP7");
-	Expr left = binopexpr5();
-	if(left = null)
-	    expected("Something");
-	if(Token.OP4 <= getToken().type() && getToken().type <= Token.OP7){
-	    op = andvance();
-	    right = binopexpr5(),
-		return new Expr("CALL", new Object[]{op.lexeme(), new Expr[]{left,rigth}});
-	}
-	 return left;
-    }
-
-    static Expr binopexpr5() throws Exception{
-	if(getToken().type() >= Token.OP1 && getToken().type() <= Token.OP4)
-	    expected("OP4 to OP7");
-	Expr left = binopexpr6();
-	if(left = null)
-	    expected("Something");
-	if(Token.OP5 <= getToken().type() && getToken().type <= Token.OP7){
-	    op = andvance();
-	    right = binopexpr6(),
-		return new Expr("CALL", new Object[]{op.lexeme(), new Expr[]{left,rigth}});
-	}
-	 return left;
-    }
-
-    static Expr binopexpr6() throws Exception{
-        if(getToken().type() >= Token.OP1 && getToken().type() <= Token.OP5)
-	    expected("OP5 to OP7");
-	Expr left = smallexpr();
-	if(left = null)
-	    expected("Something");
-	if(Token.OP6 <= getToken().type() && getToken().type <= Token.OP7){
-	    op = andvance();
-	    right = smallexpr(),
-		return new Expr("CALL", new Object[]{op.lexeme(), new Expr[]{left,rigth}});
-	}
-	 return left;
-    }
 
     // Alternative syntax with 'elsif'.
     // Slightly more complicated and requires that
