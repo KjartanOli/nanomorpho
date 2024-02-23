@@ -217,11 +217,23 @@ public class NanoMorphoParser
 				}
 				return new Expr("FETCH", new Object[]{findVar(name.lexeme())});
 			case Token.OP1:
+			    var op = advance();
+			    return new Expr("CALL", new Object[]{op.lexeme(), binopexpr1()});
 			case Token.OP2:
+			    var op = advance();
+			    return new Expr("CALL", new Object[]{op.lexeme(), binopexpr2()});
 			case Token.OP3:
+			    var op = advance();
+			    return new Expr("CALL", new Object[]{op.lexeme(), binopexpr3()});
 			case Token.OP4:
+			    var op = advance();
+			    return new Expr("CALL", new Object[]{op.lexeme(), binopexpr4()});
 			case Token.OP5:
+			    var op = advance();
+			    return new Expr("CALL", new Object[]{op.lexeme(), binopexpr5()});
 			case Token.OP6:
+			    var op = advance();
+			    return new Expr("CALL", new Object[]{op.lexeme(), binopexpr6()});
 			case Token.OP7:
 				var op = advance();
 				return new Expr("CALL", new Object[] {op.lexeme(), smallexpr()});
@@ -250,6 +262,88 @@ public class NanoMorphoParser
 		//...
 		return null;
 	}
+
+    static Expr binopexpr1() throws Exception{
+	Expr left = binopexpr2();
+	if(left = null)
+	    expected("Something");
+	if(Token.OP1 <= getToken().type() && getToken().type <= Token.OP7){
+	    op = aandvance();
+	    right = binopexpr2(),
+		return new Expr("CALL", new Object[]{op.lexeme(), new Expr[]{left,rigth}});
+	}
+	 return left;
+    }
+
+    static Expr binopexpr2() throws Exception{
+	if(getToken().type() == Token.OP1)
+	    expected("OP2 to OP7");
+	Expr left = binopexpr3();
+	if(left = null)
+	    expected("Something");
+	if(Token.OP2 <= getToken().type() && getToken().type <= Token.OP7){
+	    op = andvance();
+	    right = binopexpr3(),
+		return new Expr("CALL", new Object[]{op.lexeme(), new Expr[]{left,rigth}});
+	}
+	 return left;
+    }
+
+    static Expr binopexpr3() throws Exception{
+	if(getToken().type() == Token.OP1 || getToken().type() == Token.OP2)
+	    expected("OP3 to OP7");
+	Expr left = binopexpr4();
+	if(left = null)
+	    expected("Something");
+	if(Token.OP3 <= getToken().type() && getToken().type <= Token.OP7){
+	    op = andvance();
+	    right = binopexpr4(),
+		return new Expr("CALL", new Object[]{op.lexeme(), new Expr[]{left,rigth}});
+	}
+	 return left;
+    }
+
+    static Expr binopexpr4() throws Exception{
+	if(getToken().type() >= Token.OP1 && getToken().type() <= Token.OP3)
+	    expected("OP4 to OP7");
+	Expr left = binopexpr5();
+	if(left = null)
+	    expected("Something");
+	if(Token.OP4 <= getToken().type() && getToken().type <= Token.OP7){
+	    op = andvance();
+	    right = binopexpr5(),
+		return new Expr("CALL", new Object[]{op.lexeme(), new Expr[]{left,rigth}});
+	}
+	 return left;
+    }
+
+    static Expr binopexpr5() throws Exception{
+	if(getToken().type() >= Token.OP1 && getToken().type() <= Token.OP4)
+	    expected("OP4 to OP7");
+	Expr left = binopexpr6();
+	if(left = null)
+	    expected("Something");
+	if(Token.OP5 <= getToken().type() && getToken().type <= Token.OP7){
+	    op = andvance();
+	    right = binopexpr6(),
+		return new Expr("CALL", new Object[]{op.lexeme(), new Expr[]{left,rigth}});
+	}
+	 return left;
+    }
+
+    static Expr binopexpr6() throws Exception{
+        if(getToken().type() >= Token.OP1 && getToken().type() <= Token.OP5)
+	    expected("OP5 to OP7");
+	Expr left = smallexpr();
+	if(left = null)
+	    expected("Something");
+	if(Token.OP6 <= getToken().type() && getToken().type <= Token.OP7){
+	    op = andvance();
+	    right = smallexpr(),
+		return new Expr("CALL", new Object[]{op.lexeme(), new Expr[]{left,rigth}});
+	}
+	 return left;
+    }
 
     // Alternative syntax with 'elsif'.
     // Slightly more complicated and requires that
