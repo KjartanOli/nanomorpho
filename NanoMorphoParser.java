@@ -51,8 +51,17 @@ public class NanoMorphoParser
 		NOT
 	}
 
+	static class GenerationContext {
+		public final boolean tailpos;
+
+		GenerationContext(boolean tailpos) {
+			this.tailpos = tailpos;
+		}
+	}
+
 	interface Expr {
 		public ExprType type();
+		public void generate(GenerationContext ctx);
 	}
 
 	static class Literal implements Expr {
@@ -60,6 +69,12 @@ public class NanoMorphoParser
 
 		public Literal(String value) { this.value = value; }
 		public ExprType type() { return ExprType.LITERAL; }
+		public void generate(GenerationContext ctx) {
+			if (ctx.tailpos)
+				emit("(MakeValR %s)", this.value);
+			else
+				emit("(MakeVal %s)", this.value);
+		}
 		public String toString() { return this.value; }
 	}
 
@@ -73,6 +88,26 @@ public class NanoMorphoParser
 		}
 
 		public ExprType type() { return ExprType.CALL; }
+		public void generate(GenerationContext ctx) {
+			var argc = this.args.length;
+			if (argc > 0) {
+				this.args[0].generate(new GenerationContext(false));
+				for (var i = 1; i < argc; ++i) {
+					var arg = this.args[i];
+					if (arg.type() == ExprType.LITERAL) {
+						emit("(MakeValP %s)", ((Literal) arg).value);
+					}
+					else {
+						arg.generate(new GenerationContext(false));
+						emit("(Push)");
+					}
+				}
+			}
+			if (ctx.tailpos)
+				emit("(CallR #\"%s[f%d]\" %d)", this.function, argc, argc);
+			else
+				emit("(Call #\"%s[f%d]\" %d)", this.function, argc, argc);
+		}
 		public String toString() {
 			return String.format("%s%s", this.function, Arrays.toString(this.args));
 		}
@@ -83,6 +118,19 @@ public class NanoMorphoParser
 
 		public Return(Expr value) { this.value = value; }
 		public ExprType type() { return ExprType.RETURN; }
+		public void generate(GenerationContext ctx) {
+			switch (this.value.type()) {
+				case ExprType.FETCH:
+				case ExprType.LITERAL:
+				case ExprType.CALL:
+					this.value.generate(new GenerationContext(true));
+					break;
+				default:
+					this.value.generate(ctx);
+					emit("(Return)");
+					break;
+			}
+		}
 		public String toString() {
 			return String.format("Return [%s]", value);
 		}
@@ -106,6 +154,31 @@ public class NanoMorphoParser
 		public ExprType type () {
 			return (this.elsepart == null) ? ExprType.IF1 : ExprType.IF2;
 		}
+		public void generate(GenerationContext ctx) {
+			if (this.type() == ExprType.IF1)
+				this.generate1(ctx);
+			else
+				this.generate2(ctx);
+		}
+		private void generate1(GenerationContext ctx) {
+			var lab = newLabel();
+			this.cond.generate(new GenerationContext(false));
+			emit("(GoFalse %s)", lab);
+			this.thenpart.generate(ctx);
+			emit("%s:", lab);
+		}
+		private void generate2(GenerationContext ctx) {
+			var elseLab = newLabel();
+			var endLab = newLabel();
+
+			this.cond.generate(new GenerationContext(false));
+			emit("(GoFalse %s)", elseLab);
+			this.thenpart.generate(ctx);
+			emit("(Go %s)", endLab);
+			emit("%s:", elseLab);
+			this.elsepart.generate(ctx);
+			emit("%s:", endLab);
+		}
 		public String toString() {
 			if (this.elsepart == null)
 				return String.format("If [%s] {%s}", this.cond, this.thenpart);
@@ -119,6 +192,10 @@ public class NanoMorphoParser
 
 		public Body(Expr[] exprs) { this.exprs = exprs; }
 		public ExprType type() { return ExprType.BODY; }
+		public void generate(GenerationContext ctx) {
+			for (var expr : this.exprs)
+				expr.generate(new GenerationContext(false));
+		}
 		public String toString() {
 			return Arrays.toString(this.exprs);
 		}
@@ -129,6 +206,12 @@ public class NanoMorphoParser
 
 		public Fetch(int pos) { this.pos = pos; }
 		public ExprType type() { return ExprType.FETCH; }
+		public void generate(GenerationContext ctx) {
+			if (ctx.tailpos)
+				emit("(FetchR %d)", this.pos);
+			else
+				emit("(Fetch %d)", this.pos);
+		}
 		public String toString() {
 			return String.format("Fetch %d", this.pos);
 		}
@@ -144,6 +227,13 @@ public class NanoMorphoParser
 		}
 
 		public ExprType type() { return ExprType.STORE; }
+		public void generate(GenerationContext ctx) {
+			this.value.generate(new GenerationContext(false));
+			if (ctx.tailpos)
+				emit("(StoreR %d)", this.pos);
+			else
+				emit("(Store %d)", this.pos);
+		}
 		public String toString() {
 			return String.format("Store %d [%s]", this.pos, this.value);
 		}
@@ -159,6 +249,17 @@ public class NanoMorphoParser
 		}
 
 		public ExprType type() { return ExprType.WHILE; }
+		public void generate(GenerationContext ctx) {
+			var startLab = newLabel();
+			var endLab = newLabel();
+
+			emit("%s:", startLab);
+			this.cond.generate(new GenerationContext(false));
+			emit("(GoFalse %s)", endLab);
+			this.body.generate(new GenerationContext(false));
+			emit("(Go %s)", startLab);
+			emit("%s:", endLab);
+		}
 		public String toString() {
 			return String.format("While [%s] {%s}", this.cond, this.body);
 		}
@@ -174,6 +275,13 @@ public class NanoMorphoParser
 		}
 
 		public ExprType type() { return ExprType.OR; }
+		public void generate(GenerationContext ctx) {
+			var endlab = newLabel();
+			this.left.generate(ctx);
+			emit("(GoTrue %s)", endlab);
+			this.right.generate(ctx);
+			emit("%s:", endlab);
+		}
 		public String toString() {
 			return String.format("Or [%s] [%s]", this.left, this.right);
 		}
@@ -189,6 +297,13 @@ public class NanoMorphoParser
 		}
 
 		public ExprType type() { return ExprType.AND; }
+		public void generate(GenerationContext ctx) {
+			var endlab = newLabel();
+			this.left.generate(ctx);
+			emit("(GoFalse %s)", endlab);
+			this.right.generate(ctx);
+			emit("%s:", endlab);
+		}
 		public String toString() {
 			return String.format("And [%s] [%s]", this.left, this.right);
 		}
@@ -199,6 +314,13 @@ public class NanoMorphoParser
 
 		public Not(Expr value) { this.value = value; }
 		public ExprType type() { return ExprType.NOT; }
+		public void generate(GenerationContext ctx) {
+			value.generate(new GenerationContext(false));
+			if (ctx.tailpos)
+				emit("(NotR)");
+			else
+				emit("(Not)");
+		}
 		public String toString() {
 			return String.format("Not [%s]", this.value);
 		}
@@ -224,6 +346,20 @@ public class NanoMorphoParser
 			this.argc = argc;
 			this.localc = localc;
 			this.body = body;
+		}
+		public void generate() {
+			emit("#\"%s[f%d]\" = ", this.name, this.argc);
+			emit("[");
+			if (this.localc > 0) {
+				emit("(MakeVal null)");
+				for (var i = 0; i < this.localc; ++i)
+					emit("(Push)");
+			}
+			for (var i = 0; i < this.body.length - 1; ++i)
+				this.body[i].generate(new GenerationContext(false));
+
+			this.body[this.body.length - 1].generate(new GenerationContext(false));
+			emit("];");
 		}
 	}
 
@@ -543,7 +679,7 @@ public class NanoMorphoParser
 		emit("\"%s.mexe\" = main in",programname);
 		emit("!");
 		emit("{{");
-		for( var f: funs ) generateFunction(f);
+		for( var f: funs ) f.generate();
 		emit("}}");
 		emit("*");
 		emit("BASIS;");
@@ -552,21 +688,6 @@ public class NanoMorphoParser
     static void emit( String fmt, Object... args ) {
 		System.out.format(fmt,args);
 		System.out.println();
-	}
-
-    static void generateFunction( Function fun ) {
-		emit("#\"%s[f%d]\" = ", fun.name, fun.argc);
-		emit("[");
-		if (fun.localc > 0) {
-			emit("(MakeVal null)");
-			for (var i = 0; i < fun.localc; ++i)
-				emit("(Push)");
-		}
-		for (var i = 0; i < fun.body.length - 1; ++i)
-			generateExpr(fun.body[i]);
-
-		 generateExpr(fun.body[fun.body.length - 1], true);
-		emit("];");
 	}
 
     // All existing labels, i.e. labels the generated
@@ -585,176 +706,6 @@ public class NanoMorphoParser
 	// Useful for control-flow expressions.
 	static String newLabel() {
 		return "_"+(nextLab++);
-	}
-
-	static void generateLiteral(Literal l, boolean tailpos) {
-		if (tailpos)
-			emit("(MakeValP %s)", l.value);
-		else
-			emit("(MakeVal %s)", l.value);
-	}
-
-	static void generateFetch(Fetch f, boolean tailpos) {
-		if (tailpos)
-			emit("(FetchR %d)", f.pos);
-		else
-			emit("(Fetch %d)", f.pos);
-	}
-
-	static void generateStore(Store s, boolean tailpos) {
-		generateExpr(s.value);
-		if (tailpos)
-			emit("(StoreR %d)", s.pos);
-		else
-			emit("(Store %d)", s.pos);
-	}
-
-	static void generateExpr(Expr e) {
-		generateExpr(e, false);
-	}
-
-	static void generateExpr(Expr e, boolean tailpos) {
-		int pos;
-		switch (e.type()) {
-			case ExprType.RETURN:
-				generateReturn((Return) e);
-				break;
-			case ExprType.STORE:
-				generateStore((Store) e, tailpos);
-				break;
-			case ExprType.FETCH:
-				generateFetch((Fetch) e, tailpos);
-				break;
-			case ExprType.LITERAL:
-				generateLiteral((Literal) e, tailpos);
-				break;
-			case ExprType.CALL:
-				generateFuncall((Call) e, tailpos);
-				break;
-			case ExprType.IF1:
-				generateIF1((If) e);
-				break;
-			case ExprType.IF2:
-				generateIF2((If) e);
-				break;
-			case ExprType.BODY:
-				generateBody((Body) e);
-				break;
-			case ExprType.WHILE:
-				generateWhile((While) e);
-				break;
-			case ExprType.OR:
-				generateOR((Or) e);
-				break;
-			case ExprType.AND:
-				generateAND((And) e);
-				break;
-			case ExprType.NOT:
-				generateNOT((Not) e);
-				break;
-		}
-	}
-
-	static void generateBody(Body body) {
-		for (var expr : body.exprs)
-			generateExpr(expr);
-	}
-
-	static void generateWhile(While w) {
-		var startLab = newLabel();
-		var endLab = newLabel();
-
-		emit("%s:", startLab);
-		generateExpr(w.cond);
-		emit("(GoFalse %s)", endLab);
-		generateBody(w.body);
-		emit("(Go %s)", startLab);
-		emit("%s:", endLab);
-	}
-
-	static void generateIF1(If i) {
-		var lab = newLabel();
-		generateExpr(i.cond);
-		emit("(GoFalse %s)", lab);
-		generateExpr(i.thenpart);
-		emit("%s:", lab);
-	}
-
-	static void generateIF2(If i) {
-		var elseLab = newLabel();
-		var endLab = newLabel();
-
-		generateExpr(i.cond);
-		emit("(GoFalse %s)", elseLab);
-		generateExpr(i.thenpart);
-		emit("(Go %s)", endLab);
-		emit("%s:", elseLab);
-		generateExpr(i.elsepart);
-		emit("%s:", endLab);
-	}
-
-	static void generateReturn(Return r) {
-		switch (r.value.type()) {
-			case ExprType.FETCH:
-				generateFetch((Fetch) r.value, true);
-				break;
-			case ExprType.CALL:
-				generateFuncall((Call) r.value, true);
-				break;
-			case ExprType.LITERAL:
-				generateLiteral((Literal) r.value, true);
-				break;
-			default:
-				generateExpr(r.value);
-				emit("(Return)");
-				break;
-		}
-	}
-
-	static void generateOR(Or o) {
-		var endlab = newLabel();
-		generateExpr(o.left);
-		emit("(GoTrue %s)", endlab);
-		generateExpr(o.right);
-		emit("%s:", endlab);
-	}
-
-	static void generateAND(And a) {
-		var endlab = newLabel();
-		generateExpr(a.left);
-		emit("(GoFalse %s)", endlab);
-		generateExpr(a.right);
-		emit("%s:", endlab);
-	}
-
-	static void generateNOT(Not n) {
-		generateExpr(n.value);
-		emit("(Not)");
-	}
-
-	static void generateFuncall(Call fun) {
-		generateFuncall(fun, false);
-	}
-
-	static void generateFuncall(Call c, boolean tailCall) {
-		var argc = c.args.length;
-		if (argc > 0) {
-			generateExpr(c.args[0]);
-			for (var i = 1; i < argc; ++i) {
-				var arg = c.args[i];
-				if (arg.type() == ExprType.LITERAL) {
-					emit("(MakeValP %s)", ((Literal) arg).value);
-				}
-				else {
-					generateExpr(arg);
-					emit("(Push)");
-				}
-			}
-		}
-		if (tailCall)
-			emit("(CallR #\"%s[f%d]\" %d)", c.function, argc, argc);
-		else
-			emit("(Call #\"%s[f%d]\" %d)", c.function, argc, argc);
 	}
 
 	static public void main( String[] args ) throws Exception {
