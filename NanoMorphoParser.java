@@ -177,15 +177,35 @@ public class NanoMorphoParser
 			return new Expr("STORE", new Object[]{pos, expr()});
 		}
 		else {
-			return binopexpr(Token.OP1);
+			return orexpr();
 		}
 	}
 
-    // For the parser you do not need the pri argument and
-    // in the compiler you only need it if you wish to
-    // distinguish priorities of operators
-	static Expr binopexpr( int pri ) throws Exception {
-		return binopexpr1();
+	static Expr orexpr() throws Exception {
+		var left = andexpr();
+		if (getToken().type() == Token.OR) {
+			over(Token.OR);
+			var right = orexpr();
+			left = new Expr("OR", new Object[]{left, right});
+		}
+
+		return left;
+	}
+
+	static Expr andexpr() throws Exception {
+		var left = notexpr();
+		if (getToken().type() == Token.AND) {
+			var right = notexpr();
+			left = new Expr("AND", new Object[]{left, right});
+		}
+		return left;
+	}
+
+	static Expr notexpr() throws Exception {
+		if (getToken().type() == Token.NOT)
+			return new Expr("NOT", new Object[]{notexpr()});
+		else
+			return binopexpr1();
 	}
 
 	static Expr binopexpr1() throws Exception {
@@ -197,7 +217,7 @@ public class NanoMorphoParser
 			left = new Expr("CALL", new Object[]{op.lexeme(), new Expr[]{left, right}});
 		}
 		return left;
-    }
+	}
 
 	static Expr binopexpr2() throws Exception {
 		Expr left = binopexpr3();
@@ -428,36 +448,47 @@ public class NanoMorphoParser
 	static void generateExpr(Expr e, boolean tailpos) {
 		if (e == null)
 			return;
-		var type = e.type;
-		if (type == "RETURN") {
-			generateReturn(e);
-		}
-		if (type == "STORE") {
-			var pos = (Integer) e.args[0];
-			generateExpr((Expr) e.args[1]);
-			emit("(Store %d)", pos);
-		}
-		if (type == "FETCH") {
-			var pos = (Integer) e.args[0];
-			generateFetch(pos, tailpos);
-		}
-		if (type == "LITERAL") {
-			generateLiteral(e, tailpos);
-		}
-		if (type == "CALL") {
-			generateFuncall(e, tailpos);
-		}
-		if (type == "IF1") {
-			generateIF1(e);
-		}
-		if (type == "IF2") {
-			generateIF2(e);
-		}
-		if (type == "BODY") {
-			generateBody(e);
-		}
-		if (type == "WHILE") {
-			generateWhile(e);
+		int pos;
+		switch (e.type) {
+			case "RETURN":
+				generateReturn(e);
+				break;
+			case "STORE":
+				pos = (Integer) e.args[0];
+				generateExpr((Expr) e.args[1]);
+				emit("(Store %d)", pos);
+				break;
+			case "FETCH":
+				pos = (Integer) e.args[0];
+				generateFetch(pos, tailpos);
+				break;
+			case "LITERAL":
+				generateLiteral(e, tailpos);
+				break;
+			case "CALL":
+				generateFuncall(e, tailpos);
+				break;
+			case "IF1":
+				generateIF1(e);
+				break;
+			case "IF2":
+				generateIF2(e);
+				break;
+			case "BODY":
+				generateBody(e);
+				break;
+			case "WHILE":
+				generateWhile(e);
+				break;
+			case "OR":
+				generateOR(e);
+				break;
+			case "AND":
+				generateAND(e);
+				break;
+			case "NOT":
+				generateNOT(e);
+				break;
 		}
 	}
 
@@ -525,6 +556,31 @@ public class NanoMorphoParser
 			generateExpr(val);
 			emit("(Return)");
 		}
+	}
+
+	static void generateOR(Expr e) {
+		var left = (Expr) e.args[0];
+		var right = (Expr) e.args[1];
+		var endlab = newLabel();
+		generateExpr(left);
+		emit("(GoTrue %s)", endlab);
+		generateExpr(right);
+		emit("%s:", endlab);
+	}
+
+	static void generateAND(Expr e) {
+		var left = (Expr) e.args[0];
+		var right = (Expr) e.args[1];
+		var endlab = newLabel();
+		generateExpr(left);
+		emit("(GoFalse %s)", endlab);
+		generateExpr(right);
+		emit("%s:", endlab);
+	}
+
+	static void generateNOT(Expr e) {
+		generateExpr(e);
+		emit("(Not)");
 	}
 
 	static void generateFuncall(Expr fun) {

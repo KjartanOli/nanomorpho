@@ -203,6 +203,21 @@ _OPNAME=[\+\-*/!%&=><\:\^\~&|?]+
     return Token.RETURN;
 }
 
+"and" | "&" {
+	lexeme2 = yytext();
+	return Token.AND;
+}
+
+"or" | "|" {
+	lexeme2 = yytext();
+	return Token.OR;
+}
+
+"not" | "!" {
+	lexeme2 = yytext();
+	return Token.NOT;
+}
+
 {_NAME} {
     lexeme2 = yytext();
     return Token.NAME;

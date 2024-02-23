@@ -17,6 +17,9 @@ class Token {
 	final static int OP6 = 1014;
 	final static int OP7 = 1015;
 	final static int FUN = 1016;
+	final static int OR = 1017;
+	final static int AND = 1018;
+	final static int NOT = 1019;
 
 	public static String name(int type) {
 		if(type < 1000)
