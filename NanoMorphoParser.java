@@ -371,7 +371,7 @@ public class NanoMorphoParser
     static Expr body() throws Exception {
 		var res = new Vector<Expr>();
 		if (getToken().type() != '{')
-			return expr();
+			return new Expr("BODY", new Expr[]{expr()});
 
 		over('{');
 		res.add(expr());
@@ -409,8 +409,10 @@ public class NanoMorphoParser
 			for (var i = 0; i < fun.localc; ++i)
 				emit("(Push)");
 		}
-		for (var expr : fun.body)
-			generateExpr(expr);
+		for (var i = 0; i < fun.body.length - 1; ++i)
+			generateExpr(fun.body[i]);
+
+		 generateExpr(fun.body[fun.body.length - 1], true);
 		emit("];");
 	}
 
@@ -432,7 +434,22 @@ public class NanoMorphoParser
 		return "_"+(nextLab++);
 	}
 
-	static void generateExpr( Expr e ) {
+	static void generateFetch(int pos) {
+		generateFetch(pos, false);
+	}
+
+	static void generateFetch(int pos, boolean tailpos) {
+		if (tailpos)
+			emit("(FetchR %d)", pos);
+		else
+			emit("(Fetch %d)", pos);
+	}
+
+	static void generateExpr(Expr e) {
+		generateExpr(e, false);
+	}
+
+	static void generateExpr(Expr e, boolean tailpos) {
 		if (e == null)
 			return;
 		var type = e.type;
@@ -446,13 +463,13 @@ public class NanoMorphoParser
 		}
 		if (type == "FETCH") {
 			var pos = (Integer) e.args[0];
-			emit("(Fetch %d)", pos);
+			generateFetch(pos, tailpos);
 		}
 		if (type == "LITERAL") {
 			emit("(MakeVal %s)", (String) e.args[0]);
 		}
 		if (type == "CALL") {
-			generateFuncall(e);
+			generateFuncall(e, tailpos);
 		}
 		if (type == "IF1") {
 			generateIF1(e);
@@ -520,8 +537,7 @@ public class NanoMorphoParser
 	static void generateReturn(Expr e) {
 		var val = (Expr) e.args[0];
 		if (val.type == "FETCH") {
-			var pos = (Integer) val.args[0];
-			emit("(FetchR %d)", pos);
+			generateFetch((Integer) val.args[0], true);
 		}
 		else if (val.type == "CALL") {
 			generateFuncall(val, true);
