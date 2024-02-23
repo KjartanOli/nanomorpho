@@ -407,8 +407,11 @@ public class NanoMorphoParser
 		return "_"+(nextLab++);
 	}
 
-	static void generateFetch(int pos) {
-		generateFetch(pos, false);
+	static void generateLiteral(Expr e, boolean tailpos) {
+		if (tailpos)
+			emit("(MakeValP %s)", (String) e.args[0]);
+		else
+			emit("(MakeVal %s)", (String) e.args[0]);
 	}
 
 	static void generateFetch(int pos, boolean tailpos) {
@@ -439,7 +442,7 @@ public class NanoMorphoParser
 			generateFetch(pos, tailpos);
 		}
 		if (type == "LITERAL") {
-			emit("(MakeVal %s)", (String) e.args[0]);
+			generateLiteral(e, tailpos);
 		}
 		if (type == "CALL") {
 			generateFuncall(e, tailpos);
@@ -514,6 +517,9 @@ public class NanoMorphoParser
 		}
 		else if (val.type == "CALL") {
 			generateFuncall(val, true);
+		}
+		else if (val.type == "LITERAL") {
+			generateLiteral(val, true);
 		}
 		else {
 			generateExpr(val);
