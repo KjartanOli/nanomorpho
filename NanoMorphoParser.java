@@ -538,8 +538,13 @@ public class NanoMorphoParser
 		if (argc > 0) {
 			for (var i = 0; i < argc - 1; ++i) {
 				var arg = (Expr) args[i];
-				generateExpr(arg);
-				emit("(Push)");
+				if (arg.type == "LITERAL") {
+					emit("(MakeValP %s)", (String) arg.args[0]);
+				}
+				else {
+					generateExpr(arg);
+					emit("(Push)");
+				}
 			}
 			generateExpr((Expr) args[argc - 1]);
 		}
