@@ -1,10 +1,21 @@
-fun f() {
-	if b(a, b, c + 2) {a;}
-	else {
-		a;
-	};
+fun main() {
+	println(g(f(1,2)));
 }
 
-fun g(a, b) {
-	return x(a + b, f());
+fun f(a, b) {
+	return if (a > b)
+		b
+	else if a == b
+		a + b
+	else
+		a;
+}
+
+fun g(x) {
+	var y;
+	y = 0;
+	while y > x
+		y = y + 1;
+
+	return y;
 }
