@@ -1,4 +1,5 @@
 fun main() {
+	println(1 + 2 * 2);
 	println(g(f(1,2)));
 }
 
