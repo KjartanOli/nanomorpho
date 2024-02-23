@@ -202,10 +202,11 @@ public class NanoMorphoParser
 	}
 
 	static Expr notexpr() throws Exception {
-		if (getToken().type() == Token.NOT)
+		if (getToken().type() == Token.NOT) {
+			over(Token.NOT);
 			return new Expr("NOT", new Object[]{notexpr()});
-		else
-			return binopexpr1();
+		}
+		return binopexpr1();
 	}
 
 	static Expr binopexpr1() throws Exception {
@@ -334,7 +335,7 @@ public class NanoMorphoParser
 				var body = body();
 				return new Expr("WHILE", new Object[] {test, body});
 		}
-		//...
+		expected("something went wrong");
 		return null;
 	}
 
@@ -446,8 +447,6 @@ public class NanoMorphoParser
 	}
 
 	static void generateExpr(Expr e, boolean tailpos) {
-		if (e == null)
-			return;
 		int pos;
 		switch (e.type) {
 			case "RETURN":
@@ -579,7 +578,8 @@ public class NanoMorphoParser
 	}
 
 	static void generateNOT(Expr e) {
-		generateExpr(e);
+		var arg = (Expr) e.args[0];
+		generateExpr(arg);
 		emit("(Not)");
 	}
 
