@@ -633,13 +633,8 @@ public class NanoMorphoParser
 		return null;
 	}
 
-    // Alternative syntax with 'elsif'.
-    // Slightly more complicated and requires that
-    // the caller verifies beforehand that 'if'
-    // and 'elsif' are used in their proper places.
-
     // ifexpr = 'if', expr, body, [ ifrest ] ;
-    // ifrest = 'else', body | 'elsif', expr, body, [ ifrest ] ;
+    // ifrest = 'else', body ;
     static Expr ifexpr() throws Exception {
 		over(Token.IF);
 
