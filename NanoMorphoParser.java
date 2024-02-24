@@ -491,6 +491,7 @@ public class NanoMorphoParser
 	static Expr andexpr() throws Exception {
 		var left = notexpr();
 		if (getToken().type() == Token.AND) {
+			over(Token.AND);
 			var right = notexpr();
 			left = new And(left, right);
 		}
