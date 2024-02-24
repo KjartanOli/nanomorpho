@@ -3,7 +3,6 @@ class Token {
 	final static int EOF = 0;
 	final static int IF = 1001;
 	final static int ELSE = 1002;
-	final static int ELSEIF = 1003;
 	final static int WHILE = 1004;
 	final static int VAR = 1005;
 	final static int RETURN = 1006;
@@ -29,8 +28,6 @@ class Token {
 				return "IF";
 			case ELSE:
 				return "ELSE";
-			case ELSEIF:
-				return "ELSEIF";
 			case WHILE:
 				return "WHILE";
 			case VAR:

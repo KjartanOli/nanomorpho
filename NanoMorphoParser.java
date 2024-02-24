@@ -620,9 +620,6 @@ public class NanoMorphoParser
 				return new Call(op.lexeme(), new Expr[]{expr});
 			case Token.IF:
 				return ifexpr();
-			case Token.ELSEIF:
-				expected("'if' before 'elseif'");
-				break;
 			case Token.ELSE:
 				expected("'if' before 'else'");
 				break;
@@ -644,14 +641,11 @@ public class NanoMorphoParser
     // ifexpr = 'if', expr, body, [ ifrest ] ;
     // ifrest = 'else', body | 'elsif', expr, body, [ ifrest ] ;
     static Expr ifexpr() throws Exception {
-		if( getToken().type() == Token.ELSEIF )
-			over(Token.ELSEIF);
-		else
-			over(Token.IF);
+		over(Token.IF);
 
 		var cond = expr();
 		var thenpart = body();
-		if( getToken().type() != Token.ELSE && getToken().type() != Token.ELSEIF )
+		if(getToken().type() != Token.ELSE)
 			return new If(cond,thenpart);
 		over(Token.ELSE);
 		var t = new If(cond,thenpart,body());

@@ -178,11 +178,6 @@ _OPNAME=[\+\-*/!%&=><\:\^\~&|?]+
     return Token.ELSE;
 }
 
-"elseif" {
-    lexeme2 = yytext();
-    return Token.ELSEIF;
-}
-
 "while" {
     lexeme2 = yytext();
     return Token.WHILE;
