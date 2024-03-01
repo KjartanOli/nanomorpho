@@ -1,6 +1,7 @@
 import java.util.Vector;
 import java.util.HashMap;
 import java.util.Arrays;
+import java.util.List;
 
 public class NanoMorphoParser
 {
@@ -48,7 +49,8 @@ public class NanoMorphoParser
 		WHILE,
 		OR,
 		AND,
-		NOT
+		NOT,
+		VARIABLE
 	}
 
 	static class GenerationContext {
@@ -79,6 +81,22 @@ public class NanoMorphoParser
 				emit("(MakeVal %s)", this.value);
 		}
 		public String toString() { return this.value; }
+	}
+
+	static class Variable implements Expr {
+		public final Expr initialiser;
+
+		public Variable(Expr initialiser) {
+			this.initialiser = initialiser;
+		}
+		public Variable() {
+			this(new Literal("null"));
+		}
+		public ExprType type() { return ExprType.VARIABLE; }
+		public void generate(GenerationContext ctx) {
+			this.initialiser.generate();
+			emit("(Push)");
+		}
 	}
 
 	static class Call implements Expr {
@@ -123,9 +141,9 @@ public class NanoMorphoParser
 		public ExprType type() { return ExprType.RETURN; }
 		public void generate(GenerationContext ctx) {
 			switch (this.value.type()) {
-				case ExprType.FETCH:
-				case ExprType.LITERAL:
-				case ExprType.CALL:
+				case FETCH:
+				case LITERAL:
+				case CALL:
 					this.value.generate(new GenerationContext(true));
 					break;
 				default:
@@ -330,11 +348,11 @@ public class NanoMorphoParser
 	}
 
 	private static class FunctionBody {
-		public final int declc;
+		public final Variable[] variables;
 		public final Expr[] body;
 
-		public FunctionBody(int declc, Expr[] body) {
-			this.declc = declc;
+		public FunctionBody(Variable[] variables, Expr[] body) {
+			this.variables = variables;
 			this.body = body;
 		}
 	}
@@ -342,26 +360,21 @@ public class NanoMorphoParser
 	static class Function {
 		public final String name;
 		public final int argc;
-		public final int localc;
-		public final Expr[] body;
-		public Function(String name, int argc, int localc, Expr[] body) {
+		public final FunctionBody body;
+		public Function(String name, int argc,  FunctionBody body) {
 			this.name = name;
 			this.argc = argc;
-			this.localc = localc;
 			this.body = body;
 		}
 		public void generate() {
 			emit("#\"%s[f%d]\" = ", this.name, this.argc);
 			emit("[");
-			if (this.localc > 0) {
-				emit("(MakeVal null)");
-				for (var i = 0; i < this.localc; ++i)
-					emit("(Push)");
-			}
-			for (var i = 0; i < this.body.length - 1; ++i)
-				this.body[i].generate(new GenerationContext(false));
+			for (var variable : this.body.variables)
+				variable.generate();
+			for (var i = 0; i < this.body.body.length - 1; ++i)
+				this.body.body[i].generate(new GenerationContext(false));
 
-			this.body[this.body.length - 1].generate(new GenerationContext(true));
+			this.body.body[this.body.body.length - 1].generate(new GenerationContext(true));
 			emit("];");
 		}
 	}
@@ -408,7 +421,7 @@ public class NanoMorphoParser
 
 		// We're done with this symbol table so we'll erase it
 		varTable = null;
-		return new Function(name.lexeme(), params, (Integer) body.declc, body.body);
+		return new Function(name.lexeme(), params, body);
 	}
 
 	static int parameter_list() throws Exception {
@@ -429,13 +442,13 @@ public class NanoMorphoParser
 		return argc;
 	}
 
-	static Integer declaration_list() throws Exception {
-		int count = 0;
+	static Variable[] declaration_list() throws Exception {
+		var res = new Vector<Variable>();
 		while (getToken().type() == Token.VAR) {
-			count += decl();
+			res.addAll(decl());
 			over(';');
 		}
-		return count;
+		return res.toArray(new Variable[]{});
 	}
 
 	static FunctionBody function_body() throws Exception {
@@ -451,17 +464,30 @@ public class NanoMorphoParser
 	}
 
     // decl = 'var', Token.NAME, { ',' Token.NAME } ;
-    static int decl() throws Exception {
-		int count = 1;
+    static List<Variable> decl() throws Exception {
+		var res = new Vector<Variable>();
 		over(Token.VAR);
 		addVar(over(Token.NAME).lexeme());
+		if (getToken().type() == '=') {
+			over('=');
+			res.add(new Variable(expr()));
+		}
+		else {
+			res.add(new Variable());
+		}
 		while( getToken().type() == ',' ) {
 			over(',');
 			addVar(over(Token.NAME).lexeme());
-			++count;
+			if (getToken().type() == '=') {
+				over('=');
+				res.add(new Variable(expr()));
+			}
+			else {
+				res.add(new Variable());
+			}
 		}
 
-		return count;
+		return res;
 	}
 
     static Expr expr() throws Exception {
