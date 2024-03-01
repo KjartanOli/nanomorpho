@@ -62,6 +62,9 @@ public class NanoMorphoParser
 	interface Expr {
 		public ExprType type();
 		public void generate(GenerationContext ctx);
+		default public void generate() {
+			this.generate(new GenerationContext(false));
+		}
 	}
 
 	static class Literal implements Expr {
