@@ -3,7 +3,7 @@ import java.util.HashMap;
 import java.util.Arrays;
 import java.util.List;
 
-public class NanoMorphoParser
+public class NanoMorphoCompiler
 {
 	static Token advance() throws Exception {
 		return NanoMorphoLexer.advance();
@@ -119,8 +119,8 @@ public class NanoMorphoParser
 						emit("(MakeValP %s)", ((Literal) arg).value);
 					}
 					else {
-						arg.generate(new GenerationContext(false));
 						emit("(Push)");
+						arg.generate(new GenerationContext(false));
 					}
 				}
 			}
@@ -360,8 +360,8 @@ public class NanoMorphoParser
 	static class Function {
 		public final String name;
 		public final int argc;
-		public final FunctionBody body;
-		public Function(String name, int argc,  FunctionBody body) {
+		public final Expr[] body;
+		public Function(String name, int argc,  Expr[] body) {
 			this.name = name;
 			this.argc = argc;
 			this.body = body;
@@ -369,12 +369,10 @@ public class NanoMorphoParser
 		public void generate() {
 			emit("#\"%s[f%d]\" = ", this.name, this.argc);
 			emit("[");
-			for (var variable : this.body.variables)
-				variable.generate();
-			for (var i = 0; i < this.body.body.length - 1; ++i)
-				this.body.body[i].generate(new GenerationContext(false));
+			for (var i = 0; i < this.body.length - 1; ++i)
+				this.body[i].generate(new GenerationContext(false));
 
-			this.body.body[this.body.body.length - 1].generate(new GenerationContext(true));
+			this.body[this.body.length - 1].generate(new GenerationContext(true));
 			emit("];");
 		}
 	}
@@ -442,29 +440,19 @@ public class NanoMorphoParser
 		return argc;
 	}
 
-	static Variable[] declaration_list() throws Exception {
-		var res = new Vector<Variable>();
-		while (getToken().type() == Token.VAR) {
-			res.addAll(decl());
-			over(';');
-		}
-		return res.toArray(new Variable[]{});
-	}
-
-	static FunctionBody function_body() throws Exception {
+	static Expr[] function_body() throws Exception {
 		over('{');
-		var locals = declaration_list();
 		var exprs = new Vector<Expr>();
 		while (getToken().type() != '}') {
 			exprs.add(expr());
 			over(';');
 		}
 		over('}');
-		return new FunctionBody(locals, exprs.toArray(new Expr[]{}));
+		return exprs.toArray(new Expr[]{});
 	}
 
     // decl = 'var', Token.NAME, { ',' Token.NAME } ;
-    static List<Variable> decl() throws Exception {
+    static Body decl() throws Exception {
 		var res = new Vector<Variable>();
 		over(Token.VAR);
 		addVar(over(Token.NAME).lexeme());
@@ -487,13 +475,16 @@ public class NanoMorphoParser
 			}
 		}
 
-		return res;
+		return new Body(res.toArray(new Expr[]{}));
 	}
 
     static Expr expr() throws Exception {
 		if (getToken().type() == Token.RETURN) {
 			over(Token.RETURN);
 			return new Return(expr());
+		}
+		else if (getToken().type() == Token.VAR) {
+			return decl();
 		}
 		else if (getToken().type() == Token.NAME && getToken2().type() == '=') {
 			var name = over(Token.NAME);
