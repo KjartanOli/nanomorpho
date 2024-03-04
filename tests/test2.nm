@@ -1,9 +1,9 @@
-fun main() {
+fun main() = {
 	println(1 + 2 * 2);
 	println(g(f(1,2)));
 }
 
-fun f(a, b) {
+fun f(a, b) = {
 	return if (a > b)
 		b
 	else if a == b
@@ -12,7 +12,7 @@ fun f(a, b) {
 		a;
 }
 
-fun g(x) {
+fun g(x) = {
 	var y;
 	y = 0;
 	while y > x

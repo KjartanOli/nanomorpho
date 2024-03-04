@@ -1,4 +1,4 @@
-fun main() {
+fun main() = {
 	var x = 1, y, z = 2 + 2;
 	y = z - x;
 	var i = y;
