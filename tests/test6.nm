@@ -1,0 +1,8 @@
+fun main() {
+	f(2);
+}
+
+fun f(a) {
+	var a = a + 1;
+	println(a);
+}
