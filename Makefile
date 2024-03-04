@@ -1,6 +1,6 @@
-all: NanoMorphoParser.class NanoMorphoLexer.class
+all: NanoMorphoCompiler.class NanoMorphoLexer.class
 
-NanoMorphoParser.class: NanoMorphoParser.java NanoMorphoLexer.class
+NanoMorphoCompiler.class: NanoMorphoCompiler.java NanoMorphoLexer.class
 	javac $<
 
 NanoMorphoLexer.class: NanoMorphoLexer.java
