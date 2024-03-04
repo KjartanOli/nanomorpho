@@ -421,6 +421,7 @@ public class NanoMorphoCompiler
 		over('(');
 		var params = parameter_list();
 		over(')');
+		over('=');
 		var body = body();
 
 		// We're done with this symbol table so we'll erase it
