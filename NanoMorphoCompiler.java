@@ -672,12 +672,12 @@ public class NanoMorphoCompiler
     }
 
     static Body body() throws Exception {
-		st.pushScope();
 		var res = new Vector<Expr>();
 		if (getToken().type() != '{')
 			return new Body(new Expr[]{expr()});
 
 		over('{');
+		st.pushScope();
 		res.add(expr());
 		over(';');
 		while (getToken().type() != '}') {
