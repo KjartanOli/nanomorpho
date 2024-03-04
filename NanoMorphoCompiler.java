@@ -2,6 +2,8 @@ import java.util.Vector;
 import java.util.HashMap;
 import java.util.Arrays;
 import java.util.List;
+import java.util.Deque;
+import java.util.ArrayDeque;
 
 public class NanoMorphoCompiler
 {
@@ -214,8 +216,10 @@ public class NanoMorphoCompiler
 		public Body(Expr[] exprs) { this.exprs = exprs; }
 		public ExprType type() { return ExprType.BODY; }
 		public void generate(GenerationContext ctx) {
-			for (var expr : this.exprs)
-				expr.generate(new GenerationContext(false));
+			for (var i = 0; i < this.exprs.length - 1; ++i)
+				this.exprs[i].generate(new GenerationContext(false));
+
+			this.exprs[this.exprs.length - 1].generate(ctx);
 		}
 		public String toString() {
 			return Arrays.toString(this.exprs);
@@ -347,21 +351,11 @@ public class NanoMorphoCompiler
 		}
 	}
 
-	private static class FunctionBody {
-		public final Variable[] variables;
-		public final Expr[] body;
-
-		public FunctionBody(Variable[] variables, Expr[] body) {
-			this.variables = variables;
-			this.body = body;
-		}
-	}
-
 	static class Function {
 		public final String name;
 		public final int argc;
-		public final Expr[] body;
-		public Function(String name, int argc,  Expr[] body) {
+		public final Body body;
+		public Function(String name, int argc, Body body) {
 			this.name = name;
 			this.argc = argc;
 			this.body = body;
@@ -369,35 +363,49 @@ public class NanoMorphoCompiler
 		public void generate() {
 			emit("#\"%s[f%d]\" = ", this.name, this.argc);
 			emit("[");
-			for (var i = 0; i < this.body.length - 1; ++i)
-				this.body[i].generate(new GenerationContext(false));
-
-			this.body[this.body.length - 1].generate(new GenerationContext(true));
+			this.body.generate(new GenerationContext(true));
 			emit("];");
 		}
 	}
 
-    // You will not need the symbol table until you do the compiler proper.
-    // The symbol table consists of the following two variables.
-    private static int varCount;
-    private static HashMap<String,Integer> varTable;
+	static class SymbolTable {
+		private Deque<HashMap<String, Integer>> scopes = new ArrayDeque<HashMap<String, Integer>>();
 
-    // Adds a new variable to the symbol table.
-    // Throws Error if the variable already exists.
-	private static void addVar( String name ) {
-		if( varTable.get(name) != null )
-			expected("undeclared variable name");
-		varTable.put(name,varCount++);
-	}
+		public int varCount() {
+			var count = 0;
+			for (var scope : scopes)
+				count += scope.size();
 
-    // Finds the location of an existing variable.
-    // Throws Error if the variable does not exist.
-	private static int findVar( String name ) {
-		Integer res = varTable.get(name);
-		if( res == null )
+			return count;
+		}
+
+		public void pushScope() {
+			scopes.push(new HashMap<String, Integer>());
+		}
+
+		public void popScope() {
+			scopes.pop();
+		}
+
+		public void addVar(String name) {
+			if (scopes.peek().get(name) != null)
+				expected("undeclared variable name");
+			scopes.peek().put(name, this.varCount());
+		}
+
+		public int findVar(String name) {
+			for (var scope : scopes) {
+				var pos = scope.get(name);
+				if (pos != null)
+					return pos;
+			}
 			expected("declared variable name");
-		return res;
+			// unreachable
+			return 0;
+		}
 	}
+
+	private static SymbolTable st = new SymbolTable();
 
     static Vector<Function> program() throws Exception {
 		var res = new Vector<Function>();
@@ -407,18 +415,16 @@ public class NanoMorphoCompiler
 	}
 
 	static Function function() throws Exception {
-		varCount = 0;
-		varTable = new HashMap<String,Integer>();
-
+		st.pushScope();
 		over(Token.FUN);
 		var name = over(Token.NAME);
 		over('(');
 		var params = parameter_list();
 		over(')');
-		var body = function_body();
+		var body = body();
 
 		// We're done with this symbol table so we'll erase it
-		varTable = null;
+		st.popScope();
 		return new Function(name.lexeme(), params, body);
 	}
 
@@ -430,32 +436,21 @@ public class NanoMorphoCompiler
 		var params = new Vector<Object>();
 		var name = over(Token.NAME);
 		++argc;
-		addVar(name.lexeme());
+		st.addVar(name.lexeme());
 		while (getToken().type() == ',') {
 			over(',');
 			name = over(Token.NAME);
-			addVar(name.lexeme());
+			st.addVar(name.lexeme());
 			++argc;
 		}
 		return argc;
-	}
-
-	static Expr[] function_body() throws Exception {
-		over('{');
-		var exprs = new Vector<Expr>();
-		while (getToken().type() != '}') {
-			exprs.add(expr());
-			over(';');
-		}
-		over('}');
-		return exprs.toArray(new Expr[]{});
 	}
 
     // decl = 'var', Token.NAME, { ',' Token.NAME } ;
     static Body decl() throws Exception {
 		var res = new Vector<Variable>();
 		over(Token.VAR);
-		addVar(over(Token.NAME).lexeme());
+		var name = over(Token.NAME);
 		if (getToken().type() == '=') {
 			over('=');
 			res.add(new Variable(expr()));
@@ -463,9 +458,14 @@ public class NanoMorphoCompiler
 		else {
 			res.add(new Variable());
 		}
+		// By adding the new variable to the symbol table after
+		// parsing its initialiser we allow the initialiser to refer
+		// to variables of the same name in outer scopes.
+		st.addVar(name.lexeme());
+
 		while( getToken().type() == ',' ) {
 			over(',');
-			addVar(over(Token.NAME).lexeme());
+			name = over(Token.NAME);
 			if (getToken().type() == '=') {
 				over('=');
 				res.add(new Variable(expr()));
@@ -473,6 +473,10 @@ public class NanoMorphoCompiler
 			else {
 				res.add(new Variable());
 			}
+			// By adding the new variable to the symbol table after
+			// parsing its initialiser we allow the initialiser to refer
+			// to variables of the same name in outer scopes.
+			st.addVar(name.lexeme());
 		}
 
 		return new Body(res.toArray(new Expr[]{}));
@@ -488,7 +492,7 @@ public class NanoMorphoCompiler
 		}
 		else if (getToken().type() == Token.NAME && getToken2().type() == '=') {
 			var name = over(Token.NAME);
-			var pos = findVar(name.lexeme());
+			var pos = st.findVar(name.lexeme());
 			over('=');
 			return new Store(pos, expr());
 		}
@@ -619,7 +623,7 @@ public class NanoMorphoCompiler
 					over(')');
 					return new Call(name.lexeme(), args.toArray(new Expr[]{}));
 				}
-				return new Fetch(findVar(name.lexeme()));
+				return new Fetch(st.findVar(name.lexeme()));
 			case Token.LITERAL:
 				var token = over(Token.LITERAL);
 				return new Literal(token.lexeme());
@@ -668,6 +672,7 @@ public class NanoMorphoCompiler
     }
 
     static Body body() throws Exception {
+		st.pushScope();
 		var res = new Vector<Expr>();
 		if (getToken().type() != '{')
 			return new Body(new Expr[]{expr()});
@@ -680,6 +685,7 @@ public class NanoMorphoCompiler
 			over(';');
 		}
 		over('}');
+		st.popScope();
 		return new Body(res.toArray(new Expr[]{}));
 	}
 
