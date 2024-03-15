@@ -6,3 +6,8 @@ NanoMorphoLexer.java
 *.class
 *.patch
 *.mexe
+*.masm
+*.600pk
+auto
+{/*
+main.*
