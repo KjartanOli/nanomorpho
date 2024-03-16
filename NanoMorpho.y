@@ -1,85 +1,118 @@
-/*
- * Bison driver for NanoMorpho lexer.
- */
+%code imports {
+	import java.util.*;
+}
 
 %language "Java"
 %define parse.error verbose
-%define api.parser.class {NanoMorpho}
-%define api.parser.public
+%define api.parser.class {NanoMorphoParser}
+%define api.parser.extends {Compiler}
 
-%code imports {
-	import java.util.*;
-	import java.io.*;
-}
+%token WHILE IF ELSE VAR FUN AND OR RETURN
+%token<String> NAME LITERAL OP1 OP2 OP3 OP4 OP5 OP6 OP7
 
-%code {
-	static private NanoMorphoLexer l;
+%right RETURN '='
+%right OR
+%right AND
+%right NOT
+%left OP1
+%right OP2
+%left OP3
+%left OP4
+%left OP5
+%left OP6
+%left OP7
+%right UNOP
 
-	public static void main( String args[] )
-	  	throws IOException
-	{
-		l = new NanoMorphoLexer(new FileReader(args[0]));
-		NanoMorpho p = new NanoMorpho(l);
-		p.parse();
-	}
-}
-
-%token <String> LITERAL VAR WHILE RETURN NAME OPNAME IF ELSEIF ELSE '(' ')' '{''}'
-%token YYERRCODE
-%type <String> expr
-%type <String> paramlist
-%type <String> smallexpr
+%type <Vector<Function>> program
+%type <Function> function
+%type <Body> body decl
+%type <Expr> expr expr_or_decl initialiser
+%type <Vector<Expr>> expr_list
+%type <Variable> variable
+%type <Vector<Variable>> variable_list variable_list_p
+%type <Integer> varcount
 
 %%
 
+start
+	:	program
+		{ generateProgram($program); }
+	;
+
 program
-	:	func program
-	|	%empty
+	: program function { $1.add($function); $$ = $1; }
+	| function { $$ = new Vector<Function>(); ((Vector<Function>)$$).add($function); }
+
+function
+	: { st.pushScope(); } FUN NAME '(' parameter_list varcount ')' '=' body
+    { $$ = new Function($NAME, $varcount, $body); st.popScope(); }
+
+parameter_list
+	: %empty
+    | NAME parameter_list_p { st.addVar($NAME); }
+
+parameter_list_p
+	: ',' NAME { st.addVar($NAME); } parameter_list_p
+	| %empty
 	;
 
-expr : RETURN expr { l.show("Return EXPRESSION", $1 + ' ' + $2); }
-		| NAME '=' expr { l.show("assignment expression", $1 + '=' + $3); }
-		| binopexpr
+varcount : %empty { $$ = st.varCount(); };
 
-binopexpr: smallexpr binopexprP ;
+body
+	: expr { $$ = new Body(new Expr[]{$expr}); }
+	| '{' expr_list '}' {
+    	$$ = new Body($expr_list.toArray(new Expr[]{}));
+    }
 
-binopexprP: OPNAME smallexpr binopexprP
-		| %empty
-		;
+expr_list
+	: expr_or_decl ';' expr_list
+    {
+        var res = new Vector<Expr>();
+    	res.add($expr_or_decl);
+        res.addAll($3);
+        $$ = res;
+    }
+    | %empty { $$ = new Vector<Expr>(); }
 
+expr_or_decl
+	: decl { $$ = $decl; }
+   | expr { $$ = $expr; }
 
-smallexpr : NAME { l.show("EXPRESSION", $1); }
-		|		NAME '(' exprlist')' { l.show("funcall", $1 + $2 + $4); }
-		| 		OPNAME smallexpr { l.show("Unary OP expression", $1 + $2); }
-		| 		LITERAL { l.show("literal expr", $LITERAL); }
-		|		'(' expr ')' { l.show("parenth expr", $1 + $2 + $3); }
-		| 		ifexpr { l.show("if expr", ""); }
-		|		WHILE '(' expr ')' body { l.show("while", ""); }
-		| 		body
-	;
+expr
+    : LITERAL { $$ = new Literal($LITERAL); }
+    | NAME '=' expr { $$ = new Store(st.findVar($NAME), $3); }
+    | RETURN expr { $$ = new Return($2); }
 
-namelist : NAME namelistP { l.show("NAME", $NAME); };
-namelistP : ',' NAME namelistP { l.show("NAME", $NAME); } | %empty;
+decl
+	: VAR variable variable_list
+	{
+	    var res = new Vector<Variable>();
+    	res.add($variable);
+        res.addAll($variable_list);
+        $$ = new Body(res.toArray(new Expr[]{}));
+    }
 
-decl : VAR namelist { l.show("DECL", $1); };
+variable: NAME initialiser { st.addVar($NAME); $$ = new Variable($initialiser); }
 
-ifexpr : IF '(' expr ')' body elsif { l.show("IF", $IF); };
+initialiser
+    : expr { $$ = $expr; }
+    | %empty { $$ = null; }
 
-elsif : ELSEIF '(' expr ')' body elsif { l.show("ELSEIF", $ELSEIF); } | else;
+variable_list
+    : variable variable_list_p
+    {
+    	var res = new Vector<Variable>();
+        res.add($variable);
+        res.addAll($variable_list_p);
+        $$ = res;
+    }
 
-else : ELSE body { l.show("ELSE", $ELSE); } | %empty;
-
-decllist : decl ';' decllist | %empty;
-
-exprlist : expr ';' exprlist { l.show("Expression", ""); } | %empty;
-
-func : NAME '(' paramlist ')' funcBody { l.show("Function", $1 + $2 + $paramlist + $4); };
-
-paramlist : NAME paramlistP { l.show("PARAM", $NAME); }
-		| %empty { l.show("Empty param list", ""); };
-
-paramlistP : ',' NAME paramlistP { l.show("PARAM", $NAME); } | %empty;
-
-funcBody : '{' decllist exprlist '}';
-
-body : '{' expr ';' exprlist '}';
+variable_list_p
+	: %empty { $$ = new Vector<Variable>(); }
+    | ',' variable variable_list_p
+    {
+    	var res = new Vector<Variable>();
+        res.add($variable);
+        res.addAll($3);
+        $$ = res;
+    }

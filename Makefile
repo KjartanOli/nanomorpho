@@ -1,24 +1,19 @@
-all: NanoMorphoCompiler.class NanoMorphoLexer.class
+all: NanoMorpho.class
 
-NanoMorphoCompiler.class: NanoMorphoCompiler.java NanoMorphoLexer.class
-	javac $<
-
-NanoMorphoLexer.class: NanoMorphoLexer.java
+%.class: %.java
 	javac $^
 
-NanoMorpo.class: NanoMorpho.java
+NanoMorpho.class NanoMorphoLexer.class SymbolTable.class: NanoMorpho.java NanoMorphoLexer.java SymbolTable.java
 	javac $^
 
 NanoMorpho.java: NanoMorpho.y
 	bison $^
 
-NanoMorphoLexer.java: NanoMorphoLexer.jflex
-	~/.local/bin/jflex NanoMorphoLexer.jflex
-
-.PHONY: test
-test: NanoMorpho.class NanoMorphoLexer.class
-	java NanoMorpho test.nm
+NanoMorphoLexer.java: NanoMorpho.jflex
+	~/.local/bin/jflex $^
 
 .PHONY: clean
 clean:
-	rm *.class
+	find . -name "*.class" -delete
+	find . -name NanoMorpho.java -delete
+	find . -name NanoMorphoLexer.java -delete
