@@ -51,6 +51,10 @@ _OPNAME=[\+\-*/!%&=><\:\^\~&|?]+
     return IF;
 }
 
+"then" {
+	return THEN;
+}
+
 "else" {
     return ELSE;
 }
