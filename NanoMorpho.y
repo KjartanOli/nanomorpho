@@ -85,6 +85,7 @@ smallexpr
     : LITERAL { $$ = new Literal($LITERAL); }
     | NAME { $$ = new Fetch(st.findVar($NAME)); }
     | op smallexpr %prec UNOP { $$ = new Call($op, new Expr[]{$2}); }
+    | smallexpr op smallexpr { $$ = new Call($op, new Expr[]{$1, $3}); }
 
 op: OP1 | OP2 | OP3 | OP4 | OP5 | OP6 | OP7
 
