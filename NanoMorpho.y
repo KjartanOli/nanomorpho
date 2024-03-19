@@ -60,7 +60,8 @@ varcount : %empty { $$ = st.varCount(); };
 
 body
 	: smallexpr { $$ = new Body(new Expr[]{$smallexpr}); }
-	| '{' expr_list '}' {
+	| { st.pushScope(); }'{' expr_list '}' {
+        st.popScope();
     	$$ = new Body($expr_list.toArray(new Expr[]{}));
     }
 
