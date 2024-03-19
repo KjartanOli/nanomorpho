@@ -111,6 +111,7 @@ optexprsp
     }
     ;
 
+op: OP1 | OP2 | OP3 | OP4 | OP5 | OP6 | OP7 ;
 unop
     : op expr %prec UNOP { $$ = new Call($1, new Expr[]{$2}); }
     | NOT expr { $$ = new Not($2); }
@@ -127,8 +128,6 @@ binop
     | expr OP6 expr { $$ = new Call($2, new Expr[]{$1, $3}); }
     | expr OP7 expr { $$ = new Call($2, new Expr[]{$1, $3}); }
     ;
-
-op: OP1 | OP2 | OP3 | OP4 | OP5 | OP6 | OP7 ;
 
 
 decl
