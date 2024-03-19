@@ -27,8 +27,8 @@
 %type <Vector<Function>> program
 %type <Function> function
 %type <Body> body decl
-%type <Expr> expr smallexpr initialiser
-%type <Vector<Expr>> expr_list
+%type <Expr> stmt expr binop unop initialiser
+%type <Vector<Expr>> stmt_list
 %type <Variable> variable
 %type <Vector<Variable>> variable_list variable_list_p
 %type <Integer> varcount
@@ -60,34 +60,54 @@ parameter_list_p
 varcount : %empty { $$ = st.varCount(); };
 
 body
-	: smallexpr { $$ = new Body(new Expr[]{$smallexpr}); }
-	| { st.pushScope(); }'{' expr_list '}' {
+	: expr { $$ = new Body(new Expr[]{$expr}); }
+	| { st.pushScope(); }'{' stmt_list '}' {
         st.popScope();
-    	$$ = new Body($expr_list.toArray(new Expr[]{}));
+    	$$ = new Body($stmt_list.toArray(new Expr[]{}));
     }
 
-expr_list
-	: expr ';' expr_list
+stmt_list
+	: stmt ';' stmt_list
     {
         var res = new Vector<Expr>();
-    	res.add($expr);
+    	res.add($stmt);
         res.addAll($3);
         $$ = res;
     }
     | %empty { $$ = new Vector<Expr>(); }
 
-expr
-    : NAME '=' smallexpr { $$ = new Store(st.findVar($NAME), $3); }
-    | RETURN smallexpr { $$ = new Return($2); }
+stmt
+    : RETURN expr { $$ = new Return($2); }
+    | expr
     | decl { $$ = $decl; }
 
-smallexpr
+expr
     : LITERAL { $$ = new Literal($LITERAL); }
     | NAME { $$ = new Fetch(st.findVar($NAME)); }
-    | op smallexpr %prec UNOP { $$ = new Call($op, new Expr[]{$2}); }
-    | smallexpr op smallexpr { $$ = new Call($op, new Expr[]{$1, $3}); }
+    | NAME '=' expr { $$ = new Store(st.findVar($NAME), $3); }
+    | unop
+    | binop
+    ;
 
-op: OP1 | OP2 | OP3 | OP4 | OP5 | OP6 | OP7
+unop
+    : op expr %prec UNOP { $$ = new Call($1, new Expr[]{$2}); }
+    | NOT expr { $$ = new Not($2); }
+    ;
+
+binop
+    : expr AND expr { $$ = new And($1, $3); }
+    | expr OR expr { $$ = new Or($1, $3); }
+    | expr OP1 expr { $$ = new Call($2, new Expr[]{$1, $3}); }
+    | expr OP2 expr { $$ = new Call($2, new Expr[]{$1, $3}); }
+    | expr OP3 expr { $$ = new Call($2, new Expr[]{$1, $3}); }
+    | expr OP4 expr { $$ = new Call($2, new Expr[]{$1, $3}); }
+    | expr OP5 expr { $$ = new Call($2, new Expr[]{$1, $3}); }
+    | expr OP6 expr { $$ = new Call($2, new Expr[]{$1, $3}); }
+    | expr OP7 expr { $$ = new Call($2, new Expr[]{$1, $3}); }
+    ;
+
+op: OP1 | OP2 | OP3 | OP4 | OP5 | OP6 | OP7 ;
+
 
 decl
 	: VAR variable variable_list
@@ -101,7 +121,7 @@ decl
 variable: NAME initialiser { st.addVar($NAME); $$ = new Variable($initialiser); }
 
 initialiser
-    : '=' smallexpr { $$ = $smallexpr; }
+    : '=' expr { $$ = $expr; }
     | %empty { $$ = null; }
 
 variable_list
