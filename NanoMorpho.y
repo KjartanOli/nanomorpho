@@ -28,7 +28,8 @@
 %type <Function> function
 %type <Body> body decl
 %type <Expr> stmt expr binop unop initialiser
-%type <Vector<Expr>> stmt_list
+%type <Expr[]> optexprs
+%type <Vector<Expr>> stmt_list optexprsp
 %type <Variable> variable
 %type <Vector<Variable>> variable_list variable_list_p
 %type <Integer> varcount
@@ -85,8 +86,29 @@ expr
     : LITERAL { $$ = new Literal($LITERAL); }
     | NAME { $$ = new Fetch(st.findVar($NAME)); }
     | NAME '=' expr { $$ = new Store(st.findVar($NAME), $3); }
+    | NAME '(' optexprs ')' { $$ = new Call($NAME, $optexprs); }
     | unop
     | binop
+    ;
+
+optexprs
+   : %empty { $$ = new Expr[]{}; }
+   | expr optexprsp {
+       var res = new Vector<Expr>();
+       res.add($expr);
+       res.addAll($optexprsp);
+       $$ = res.toArray(new Expr[]{});
+   }
+   ;
+
+optexprsp
+    : %empty { $$ = new Vector<Expr>(); }
+    | ',' expr optexprsp {
+       var res = new Vector<Expr>();
+       res.add($expr);
+       res.addAll($3);
+       $$ = res;
+    }
     ;
 
 unop
