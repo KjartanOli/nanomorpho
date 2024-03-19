@@ -26,7 +26,7 @@
 %type <Vector<Function>> program
 %type <Function> function
 %type <Body> body decl
-%type <Expr> expr expr_or_decl initialiser
+%type <Expr> expr smallexpr initialiser
 %type <Vector<Expr>> expr_list
 %type <Variable> variable
 %type <Vector<Variable>> variable_list variable_list_p
@@ -59,29 +59,30 @@ parameter_list_p
 varcount : %empty { $$ = st.varCount(); };
 
 body
-	: expr { $$ = new Body(new Expr[]{$expr}); }
+	: smallexpr { $$ = new Body(new Expr[]{$smallexpr}); }
 	| '{' expr_list '}' {
     	$$ = new Body($expr_list.toArray(new Expr[]{}));
     }
 
 expr_list
-	: expr_or_decl ';' expr_list
+	: expr ';' expr_list
     {
         var res = new Vector<Expr>();
-    	res.add($expr_or_decl);
+    	res.add($expr);
         res.addAll($3);
         $$ = res;
     }
     | %empty { $$ = new Vector<Expr>(); }
 
-expr_or_decl
-	: decl { $$ = $decl; }
-   | expr { $$ = $expr; }
-
 expr
+    : NAME '=' smallexpr { $$ = new Store(st.findVar($NAME), $3); }
+    | RETURN smallexpr { $$ = new Return($2); }
+    | decl { $$ = $decl; }
+
+smallexpr
     : LITERAL { $$ = new Literal($LITERAL); }
-    | NAME '=' expr { $$ = new Store(st.findVar($NAME), $3); }
-    | RETURN expr { $$ = new Return($2); }
+    | NAME { $$ = new Fetch(st.findVar($NAME)); }
+
 
 decl
 	: VAR variable variable_list
@@ -95,7 +96,7 @@ decl
 variable: NAME initialiser { st.addVar($NAME); $$ = new Variable($initialiser); }
 
 initialiser
-    : expr { $$ = $expr; }
+    : '=' smallexpr { $$ = $smallexpr; }
     | %empty { $$ = null; }
 
 variable_list
