@@ -27,7 +27,7 @@
 %type <Vector<Function>> program
 %type <Function> function
 %type <Body> body decl
-%type <Expr> stmt expr binop unop initialiser ifexpr
+%type <Expr> stmt expr binop unop initialiser ifexpr whileexpr
 %type <Expr[]> optexprs
 %type <Vector<Expr>> stmt_list optexprsp
 %type <Variable> variable
@@ -90,6 +90,7 @@ expr
     | unop
     | binop
     | ifexpr
+    | whileexpr
     ;
 
 optexprs
@@ -134,6 +135,8 @@ ifexpr
     : IF expr THEN body { $$ = new If($expr, $body); }
     | IF expr THEN body ELSE body { $$ = new If($expr, $4, $6); }
     ;
+
+whileexpr: WHILE expr body { $$ = new While($expr, $body); };
 
 decl
 	: VAR variable variable_list
