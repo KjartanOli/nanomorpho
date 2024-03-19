@@ -23,6 +23,7 @@
 %left OP7
 %right UNOP
 
+%type <String> op
 %type <Vector<Function>> program
 %type <Function> function
 %type <Body> body decl
@@ -83,7 +84,9 @@ expr
 smallexpr
     : LITERAL { $$ = new Literal($LITERAL); }
     | NAME { $$ = new Fetch(st.findVar($NAME)); }
+    | op smallexpr %prec UNOP { $$ = new Call($op, new Expr[]{$2}); }
 
+op: OP1 | OP2 | OP3 | OP4 | OP5 | OP6 | OP7
 
 decl
 	: VAR variable variable_list

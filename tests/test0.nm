@@ -1,3 +1,5 @@
 fun f(a, b) = {
     return a;
 }
+
+fun g(a) = -a
