@@ -12,6 +12,9 @@ NanoMorpho.java: NanoMorpho.y
 NanoMorphoLexer.java: NanoMorpho.jflex
 	~/.local/bin/jflex $^
 
+tests/test%.out: tests/test%.nm Compiler.class
+	java Compiler $< > tests/$@.out
+
 .PHONY: clean
 clean:
 	find . -name "*.class" -delete
