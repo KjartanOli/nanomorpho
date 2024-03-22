@@ -22,6 +22,16 @@ class Compiler {
 		VARIABLE
 	}
 
+	static class Match {
+		public Expr value;
+		public Body body;
+
+		public Match(Expr value, Body body) {
+			this.value = value;
+			this.body = body;
+		}
+	}
+
 	static class GenerationContext {
 		public final boolean tailpos;
 

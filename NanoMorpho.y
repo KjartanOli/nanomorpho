@@ -7,7 +7,7 @@
 %define api.parser.class {NanoMorphoParser}
 %define api.parser.extends {Compiler}
 
-%token WHILE FOR IF ELSE COND VAR FUN AND OR RETURN
+%token WHILE FOR IF ELSE COND MATCH FAT_ARROW VAR FUN AND OR RETURN
 %token<String> NAME LITERAL OP1 OP2 OP3 OP4 OP5 OP6 OP7
 
 %right RETURN '='
@@ -26,9 +26,11 @@
 %type <String> op
 %type <Vector<Function>> program
 %type <Function> function
-%type <Body> body decl ifrest
+%type <Body> body optbody decl ifrest
 %type <If> cond conds
-%type <Expr> stmt expr binop unop initialiser ifexpr condexpr whileexpr for_loop
+%type <Match> match
+%type <Deque<Match>> matchs
+%type <Expr> stmt expr binop unop initialiser ifexpr condexpr matchexpr whileexpr for_loop
 %type <Expr[]> optexprs
 %type <Vector<Expr>> stmt_list optexprsp
 %type <Variable> variable
@@ -99,6 +101,7 @@ expr
     | NAME '(' optexprs ')' { $$ = new Call($NAME, $optexprs); }
     | ifexpr
     | condexpr
+    | matchexpr
     | unop
     | binop
     ;
@@ -106,6 +109,31 @@ expr
 condexpr: COND '{' conds '}' { $$ = $conds; } ;
 conds: cond conds { $$ = new If($cond.cond, $cond.thenpart, $2 == null ? null : new Body($2)); } | %empty { $$ = null; };
 cond: expr body { $$ = new If($expr, $body); }
+
+matchexpr: MATCH expr '{' matchs optbody '}' {
+	var match_var = "__match_var";
+	st.addVar(match_var);
+	var matches = (Deque<Match>) $matchs;
+	If res = null;
+	do {
+		var match = matches.removeFirst();
+		var test = new Call("==", new Expr[]{
+			new Fetch(st.findVar(match_var)),
+			match.value
+		});
+		res = new If(test, match.body, res == null ? $optbody : new Body(res));
+	} while (matches.size() > 0);
+
+	$$ = new Body(new Expr[]{new Variable($expr), res});
+}
+matchs: match matchs {
+	$$ = $2;
+	((Deque<Match>)$$).addLast($match);
+}
+      | %empty { $$ = new ArrayDeque<Match>(); }
+match: expr FAT_ARROW body { $$ = new Match($expr, $body); }
+
+optbody: %empty { $$ = null; } | body ;
 
 optexprs
    : %empty { $$ = new Expr[]{}; }

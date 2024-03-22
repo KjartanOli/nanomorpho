@@ -59,6 +59,14 @@ _OPNAME=[\+\-*/!%&=><\:\^\~&|?]+
 	return COND;
 }
 
+"match" {
+	return MATCH;
+}
+
+"=>" {
+	return FAT_ARROW;
+}
+
 "while" {
     return WHILE;
 }
