@@ -7,7 +7,7 @@
 %define api.parser.class {NanoMorphoParser}
 %define api.parser.extends {Compiler}
 
-%token WHILE IF ELSE VAR FUN AND OR RETURN
+%token WHILE IF ELSE COND VAR FUN AND OR RETURN
 %token<String> NAME LITERAL OP1 OP2 OP3 OP4 OP5 OP6 OP7
 
 %right RETURN '='
@@ -27,7 +27,8 @@
 %type <Vector<Function>> program
 %type <Function> function
 %type <Body> body decl ifrest
-%type <Expr> stmt expr binop unop initialiser ifexpr whileexpr
+%type <If> cond conds
+%type <Expr> stmt expr binop unop initialiser ifexpr whileexpr condexpr
 %type <Expr[]> optexprs
 %type <Vector<Expr>> stmt_list optexprsp
 %type <Variable> variable
@@ -96,9 +97,14 @@ expr
     | NAME '=' expr { $$ = new Store(st.findVar($NAME), $3); }
     | NAME '(' optexprs ')' { $$ = new Call($NAME, $optexprs); }
     | ifexpr
+    | condexpr
     | unop
     | binop
     ;
+
+condexpr: COND '{' conds '}' { $$ = $conds; } ;
+conds: cond conds { $$ = new If($cond.cond, $cond.thenpart, $2 == null ? null : new Body($2)); } | %empty { $$ = null; };
+cond: expr body { $$ = new If($expr, $body); }
 
 optexprs
    : %empty { $$ = new Expr[]{}; }

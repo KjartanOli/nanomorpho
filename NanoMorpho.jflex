@@ -55,6 +55,10 @@ _OPNAME=[\+\-*/!%&=><\:\^\~&|?]+
     return ELSE;
 }
 
+"cond" {
+	return COND;
+}
+
 "while" {
     return WHILE;
 }
