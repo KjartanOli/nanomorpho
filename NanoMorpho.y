@@ -7,7 +7,7 @@
 %define api.parser.class {NanoMorphoParser}
 %define api.parser.extends {Compiler}
 
-%token WHILE IF THEN ELSE VAR FUN AND OR RETURN
+%token WHILE IF ELSE VAR FUN AND OR RETURN
 %token<String> NAME LITERAL OP1 OP2 OP3 OP4 OP5 OP6 OP7
 
 %right RETURN '='
@@ -139,8 +139,8 @@ binop
     ;
 
 ifexpr
-    : IF expr THEN body { $$ = new If($expr, $body); }
-    | IF expr THEN body ELSE body { $$ = new If($expr, $4, $6); }
+    : IF expr body { $$ = new If($expr, $body); }
+    | IF expr body ELSE body { $$ = new If($expr, $3, $5); }
     ;
 
 whileexpr: WHILE expr body { $$ = new While($expr, $body); };
