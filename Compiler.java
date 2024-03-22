@@ -180,6 +180,7 @@ class Compiler {
 	static class Body implements Expr {
 		public final Expr[] exprs;
 
+		public Body(Expr expr) { this.exprs = new Expr[]{expr}; }
 		public Body(Expr[] exprs) { this.exprs = exprs; }
 		public ExprType type() { return ExprType.BODY; }
 		public void generate(GenerationContext ctx) {
