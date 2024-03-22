@@ -106,9 +106,11 @@ expr
     | binop
     ;
 
-condexpr: COND '{' conds '}' { $$ = $conds; } ;
+condexpr: COND '{' conds optbody '}' {
+	$$ = $optbody == null ? $conds : new Body(new Expr[]{$conds, $optbody});
+ };
 conds: cond conds { $$ = new If($cond.cond, $cond.thenpart, $2 == null ? null : new Body($2)); } | %empty { $$ = null; };
-cond: expr body { $$ = new If($expr, $body); }
+cond: expr FAT_ARROW body { $$ = new If($expr, $body); }
 
 matchexpr: MATCH expr '{' matchs optbody '}' {
 	var match_var = "__match_var";
