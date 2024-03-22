@@ -26,11 +26,11 @@
 %type <String> op
 %type <Vector<Function>> program
 %type <Function> function
-%type <Body> body optbody decl ifrest
+%type <Body> body optbody decl optdecl ifrest
 %type <If> cond conds
 %type <Match> match
 %type <Deque<Match>> matchs
-%type <Expr> stmt expr binop unop initialiser ifexpr condexpr matchexpr whileexpr for_loop
+%type <Expr> stmt expr binop unop initialiser ifexpr condexpr matchexpr whileexpr for_loop optexpr
 %type <Expr[]> optexprs
 %type <Vector<Expr>> stmt_list optexprsp
 %type <Variable> variable
@@ -135,7 +135,9 @@ matchs: match matchs {
       | %empty { $$ = new ArrayDeque<Match>(); }
 match: expr FAT_ARROW body { $$ = new Match($expr, $body); }
 
+optexpr: %empty { $$ = null; } | expr ;
 optbody: %empty { $$ = null; } | body ;
+optdecl: %empty { $$ = null; } | decl ;
 
 optexprs
    : %empty { $$ = new Expr[]{}; }
@@ -185,13 +187,17 @@ ifrest
     | ELSE ifexpr { $$ = new Body(new Expr[]{$ifexpr}); }
 
 whileexpr: WHILE expr body { $$ = new While($expr, $body); };
-for_loop: FOR '(' decl ';' expr ';' expr ')' body {
+for_loop: FOR '(' optdecl ';' expr ';' optexpr ')' body {
 	var t = new Vector<Expr>(Arrays.asList($body.exprs));
-	t.add($7);
-	$$ = new Body(new Expr[]{
-		$decl,
-		new While($5, new Body(t.toArray(new Expr[]{})))
-	});
+	if ($7 != null)
+		t.add($7);
+	if ($optdecl != null)
+		$$ = new Body(new Expr[]{
+			$optdecl,
+			new While($5, new Body(t.toArray(new Expr[]{})))
+		});
+	else
+		$$ = new While($5, new Body(t.toArray(new Expr[]{})));
 }
 
 decl
