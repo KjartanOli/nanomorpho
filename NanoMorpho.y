@@ -26,7 +26,7 @@
 %type <String> op
 %type <Vector<Function>> program
 %type <Function> function
-%type <Body> body decl
+%type <Body> body decl ifrest
 %type <Expr> stmt expr binop unop initialiser ifexpr whileexpr
 %type <Expr[]> optexprs
 %type <Vector<Expr>> stmt_list optexprsp
@@ -140,8 +140,12 @@ binop
 
 ifexpr
     : IF expr body { $$ = new If($expr, $body); }
-    | IF expr body ELSE body { $$ = new If($expr, $3, $5); }
+    | IF expr body ifrest { $$ = new If($expr, $3, $4); }
     ;
+
+ifrest
+    : ELSE body { $$ = $body; }
+    | ELSE ifexpr { $$ = new Body(new Expr[]{$ifexpr}); }
 
 whileexpr: WHILE expr body { $$ = new While($expr, $body); };
 
