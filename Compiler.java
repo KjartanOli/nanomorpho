@@ -252,6 +252,8 @@ class Compiler {
 			this.body.generate(new GenerationContext(false));
 			emit("(Go %s)", startLab);
 			emit("%s:", endLab);
+			if (ctx.tailpos)
+				emit("(Return)");
 		}
 		public String toString() {
 			return String.format("While [%s] {%s}", this.cond, this.body);
