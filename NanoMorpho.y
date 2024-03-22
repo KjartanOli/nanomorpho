@@ -7,7 +7,7 @@
 %define api.parser.class {NanoMorphoParser}
 %define api.parser.extends {Compiler}
 
-%token WHILE IF ELSE COND VAR FUN AND OR RETURN
+%token WHILE FOR IF ELSE COND VAR FUN AND OR RETURN
 %token<String> NAME LITERAL OP1 OP2 OP3 OP4 OP5 OP6 OP7
 
 %right RETURN '='
@@ -28,7 +28,7 @@
 %type <Function> function
 %type <Body> body decl ifrest
 %type <If> cond conds
-%type <Expr> stmt expr binop unop initialiser ifexpr whileexpr condexpr
+%type <Expr> stmt expr binop unop initialiser ifexpr condexpr whileexpr for_loop
 %type <Expr[]> optexprs
 %type <Vector<Expr>> stmt_list optexprsp
 %type <Variable> variable
@@ -90,6 +90,7 @@ stmt
     | expr
     | decl { $$ = $decl; }
     | whileexpr
+    | for_loop
 
 expr
     : LITERAL { $$ = new Literal($LITERAL); }
@@ -154,6 +155,14 @@ ifrest
     | ELSE ifexpr { $$ = new Body(new Expr[]{$ifexpr}); }
 
 whileexpr: WHILE expr body { $$ = new While($expr, $body); };
+for_loop: FOR '(' decl ';' expr ';' expr ')' body {
+	var t = new Vector<Expr>(Arrays.asList($body.exprs));
+	t.add($7);
+	$$ = new Body(new Expr[]{
+		$decl,
+		new While($5, new Body(t.toArray(new Expr[]{})))
+	});
+}
 
 decl
 	: VAR variable variable_list

@@ -1,0 +1,17 @@
+fun f(x) = {
+	for (var i = 0; i < x; i = i + 1) {
+		println(i);
+	};
+}
+
+fun w(x) = {
+	var i = 0;
+	while i < x {
+		println(i);
+		i = i + 1;
+	};
+}
+
+fun main() = {
+	w(10);
+}

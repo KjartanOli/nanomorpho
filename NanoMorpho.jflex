@@ -63,6 +63,10 @@ _OPNAME=[\+\-*/!%&=><\:\^\~&|?]+
     return WHILE;
 }
 
+"for" {
+	return FOR;
+}
+
 "var" {
     return VAR;
 }
