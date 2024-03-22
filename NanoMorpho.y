@@ -60,12 +60,19 @@ parameter_list_p
 
 varcount : %empty { $$ = st.varCount(); };
 
+/*
 body
 	: expr { $$ = new Body(new Expr[]{$expr}); }
 	| { st.pushScope(); }'{' stmt_list '}' {
         st.popScope();
     	$$ = new Body($stmt_list.toArray(new Expr[]{}));
     }
+*/
+
+body: { st.pushScope(); }'{' stmt_list '}' {
+        st.popScope();
+    	$$ = new Body($stmt_list.toArray(new Expr[]{}));
+      }
 
 stmt_list
 	: stmt ';' stmt_list
@@ -81,16 +88,16 @@ stmt
     : RETURN expr { $$ = new Return($2); }
     | expr
     | decl { $$ = $decl; }
+    | whileexpr
 
 expr
     : LITERAL { $$ = new Literal($LITERAL); }
     | NAME { $$ = new Fetch(st.findVar($NAME)); }
     | NAME '=' expr { $$ = new Store(st.findVar($NAME), $3); }
     | NAME '(' optexprs ')' { $$ = new Call($NAME, $optexprs); }
+    | ifexpr
     | unop
     | binop
-    | ifexpr
-    | whileexpr
     ;
 
 optexprs
@@ -154,7 +161,8 @@ initialiser
     | %empty { $$ = null; }
 
 variable_list
-    : variable variable_list_p
+    : %empty { $$ = new Vector<Variable>(); }
+    | ',' variable variable_list_p
     {
     	var res = new Vector<Variable>();
         res.add($variable);
