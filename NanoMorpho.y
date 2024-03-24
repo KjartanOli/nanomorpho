@@ -50,21 +50,22 @@ program
 	| function { $$ = new Vector<Function>(); ((Vector<Function>)$$).add($function); }
 
 function
-	: { st.pushScope(); } FUN name_or_op '(' parameter_list varcount ')' '=' body
-    { $$ = new Function($name_or_op, $varcount, $body); st.popScope(); }
+	: { st.pushScope(); } FUN name_or_op '(' parameter_list varcount ')' '=' body {
+	$$ = new Function($name_or_op, $varcount, $body); st.popScope();
+}
+
+varcount: %empty { $$ = st.varCount(); }
 
 name_or_op: NAME | op ;
 
 parameter_list
 	: %empty
-    | NAME parameter_list_p { st.addVar($NAME); }
+    | NAME { st.addVar($NAME); } parameter_list_p
 
 parameter_list_p
 	: ',' NAME { st.addVar($NAME); } parameter_list_p
 	| %empty
 	;
-
-varcount : %empty { $$ = st.varCount(); };
 
 /*
 body
@@ -102,7 +103,7 @@ expr
     | NAME { $$ = new Fetch(st.findVar($NAME)); }
     | NAME '=' expr { $$ = new Store(st.findVar($NAME), $3); }
     | NAME '(' optexprs ')' { $$ = new Call($NAME, $optexprs); }
-    | '(' expr ')' { $$ = $2; }
+    | '(' expr ')' %prec UNOP { $$ = $2; }
     | ifexpr
     | condexpr
     | matchexpr
