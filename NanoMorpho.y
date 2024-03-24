@@ -57,12 +57,8 @@ name_or_op: NAME | op ;
 
 parameter_list
 	: %empty
-    | NAME { st.addVar($NAME); } parameter_list_p
-
-parameter_list_p
-	: ',' NAME { st.addVar($NAME); } parameter_list_p
-	| %empty
-	;
+    | NAME { st.addVar($NAME); }
+    | parameter_list ',' NAME { st.addVar($NAME); }
 
 /*
 body
