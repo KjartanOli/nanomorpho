@@ -101,6 +101,7 @@ expr
     | NAME { $$ = new Fetch(st.findVar($NAME)); }
     | NAME '=' expr { $$ = new Store(st.findVar($NAME), $3); }
     | NAME '(' optexprs ')' { $$ = new Call($NAME, $optexprs); }
+    | '(' expr ')' { $$ = $2; }
     | ifexpr
     | condexpr
     | matchexpr
