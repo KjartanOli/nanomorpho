@@ -69,17 +69,17 @@ body
     }
 */
 
-body: { st.pushScope(); }'{' stmt_list '}' {
+body: { st.pushScope(); }'{' stmt_list ';' '}' {
         st.popScope();
     	$$ = new Body($stmt_list.toArray(new Expr[]{}));
       }
 
 stmt_list
-	: stmt ';' stmt_list
-    {
+    : stmt { $$ = new Vector<Expr>(); ((Vector<Expr>)$$).add($stmt); }
+    | stmt_list ';' stmt {
         var res = new Vector<Expr>();
     	res.add($stmt);
-        res.addAll($3);
+        res.addAll($1);
         $$ = res;
     }
     | %empty { $$ = new Vector<Expr>(); }
