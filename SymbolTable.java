@@ -23,7 +23,7 @@ class SymbolTable {
 
 	public void addVar(String name) {
 		if (scopes.peek().get(name) != null)
-			throw new RuntimeException("Existing variable name");
+			throw new RuntimeException(String.format("Existing variable name %s", name));
 		scopes.peek().put(name, this.varCount());
 	}
 
@@ -33,6 +33,6 @@ class SymbolTable {
 			if (pos != null)
 				return pos;
 		}
-		throw new RuntimeException("Undeclared variable name");
+		throw new RuntimeException(String.format("Undeclared variable name %s", name));
 	}
 }
