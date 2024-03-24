@@ -1,0 +1,15 @@
+fun **(x, e) = {
+	if e == 0 {
+		return 1;
+	};
+	return x * (x ** (e - 1));
+}
+
+fun main() = {
+	println(2 ** 0);
+	println(2 ** 1);
+	println(2 ** 2);
+	println(2 ** 3);
+	println(2 ** 4);
+	println(2 ** 5);
+}
