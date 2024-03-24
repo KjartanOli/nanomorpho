@@ -23,7 +23,7 @@
 %left OP7
 %right UNOP
 
-%type <String> op
+%type <String> op name_or_op
 %type <Vector<Function>> program
 %type <Function> function
 %type <Body> body optbody decl optdecl ifrest
@@ -49,8 +49,10 @@ program
 	| function { $$ = new Vector<Function>(); ((Vector<Function>)$$).add($function); }
 
 function
-	: { st.pushScope(); } FUN NAME '(' parameter_list varcount ')' '=' body
-    { $$ = new Function($NAME, $varcount, $body); st.popScope(); }
+	: { st.pushScope(); } FUN name_or_op '(' parameter_list varcount ')' '=' body
+    { $$ = new Function($name_or_op, $varcount, $body); st.popScope(); }
+
+name_or_op: NAME | op ;
 
 parameter_list
 	: %empty
