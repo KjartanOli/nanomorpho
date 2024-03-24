@@ -35,7 +35,7 @@
 %type <Deque<Expr>> optexprsp
 %type <Vector<Expr>> stmt_list
 %type <Variable> variable
-%type <Vector<Variable>> variable_list variable_list_p
+%type <Vector<Variable>> variable_list
 %type <Integer> varcount
 
 %%
@@ -197,11 +197,8 @@ for_loop: FOR '(' optdecl ';' expr ';' optexpr ')' body {
 		$$ = new While($5, new Body(t.toArray(new Expr[]{})));
 };
 
-decl: VAR variable variable_list {
-	var res = new Vector<Variable>();
-	res.add($variable);
-	res.addAll($variable_list);
-	$$ = new Body(res.toArray(new Expr[]{}));
+decl: VAR variable_list {
+	$$ = new Body($variable_list.toArray(new Expr[]{}));
 };
 
 variable: NAME initialiser { st.addVar($NAME); $$ = new Variable($initialiser); }
@@ -212,19 +209,6 @@ initialiser
     ;
 
 variable_list
-    : %empty { $$ = new Vector<Variable>(); }
-    | ',' variable variable_list_p {
-	var res = new Vector<Variable>();
-	res.add($variable);
-	res.addAll($variable_list_p);
-	$$ = res;
-};
-
-variable_list_p
-	: %empty { $$ = new Vector<Variable>(); }
-    | ',' variable variable_list_p {
-	var res = new Vector<Variable>();
-	res.add($variable);
-	res.addAll($3);
-	$$ = res;
-};
+    : variable { $$ = new Vector<Variable>(); ((Vector<Variable>)$$).add($variable); }
+    | variable_list ',' variable { $$ = $1; ((Vector<Variable>)$$).add($variable); }
+    ;
