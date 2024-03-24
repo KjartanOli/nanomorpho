@@ -3,7 +3,6 @@ import java.util.Deque;
 import java.util.ArrayDeque;
 
 class SymbolTable {
-	private void expected(String _a) { return; }
 	private Deque<HashMap<String, Integer>> scopes = new ArrayDeque<HashMap<String, Integer>>();
 
 	public int varCount() {
@@ -24,7 +23,7 @@ class SymbolTable {
 
 	public void addVar(String name) {
 		if (scopes.peek().get(name) != null)
-			expected("undeclared variable name");
+			throw new RuntimeException("Existing variable name");
 		scopes.peek().put(name, this.varCount());
 	}
 
@@ -34,8 +33,6 @@ class SymbolTable {
 			if (pos != null)
 				return pos;
 		}
-		expected("declared variable name");
-		// unreachable
-		return 0;
+		throw new RuntimeException("Undeclared variable name");
 	}
 }
