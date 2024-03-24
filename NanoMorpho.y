@@ -32,7 +32,8 @@
 %type <Deque<Match>> matchs
 %type <Expr> stmt expr binop unop initialiser ifexpr condexpr matchexpr whileexpr for_loop optexpr
 %type <Expr[]> optexprs
-%type <Vector<Expr>> stmt_list optexprsp
+%type <Deque<Expr>> optexprsp
+%type <Vector<Expr>> stmt_list
 %type <Variable> variable
 %type <Vector<Variable>> variable_list variable_list_p
 %type <Integer> varcount
@@ -145,20 +146,16 @@ optdecl: %empty { $$ = null; } | decl ;
 optexprs
    : %empty { $$ = new Expr[]{}; }
    | expr optexprsp {
-       var res = new Vector<Expr>();
-       res.add($expr);
-       res.addAll($optexprsp);
-       $$ = res.toArray(new Expr[]{});
+       ((Deque<Expr>)$2).add($expr);
+       $$ = ((Deque<Expr>)$2).toArray(new Expr[]{});
    }
    ;
 
 optexprsp
-    : %empty { $$ = new Vector<Expr>(); }
+    : %empty { $$ = new ArrayDeque<Expr>(); }
     | ',' expr optexprsp {
-       var res = new Vector<Expr>();
-       res.add($expr);
-       res.addAll($3);
-       $$ = res;
+       ((Deque<Expr>)$3).add($expr);
+       $$ = $3;
     }
     ;
 
