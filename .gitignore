@@ -8,6 +8,12 @@ NanoMorphoLexer.java
 *.mexe
 *.masm
 *.600pk
+*.aux
+*.log
+*.fls
+*.fdb_latexmk
+*.toc
+*.pdf
 *.out
 auto
 {/*
