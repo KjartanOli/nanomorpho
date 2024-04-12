@@ -1,4 +1,4 @@
-This is LuaHBTeX, Version 1.14.0 (TeX Live 2022/dev/Debian)  (format=lualatex 2024.4.5)  8 APR 2024 09:37
+This is LuaHBTeX, Version 1.14.0 (TeX Live 2022/dev/Debian)  (format=lualatex 2024.4.5)  12 APR 2024 11:18
  restricted system commands enabled.
 **handbok.tex
 (./handbok.tex
@@ -326,53 +326,40 @@ LaTeX Font Info:    External font `cmex10' loaded for size
 \tf@toc=\write4
 
 \openout4 = handbok.toc
- [2] [3]
-Overfull \vbox (64.87979pt too high) has occurred while \output is active []
-
-
-[4]
-LaTeX Font Info:    Trying to load font information for T1+pcr on input line 78
+LaTeX Font Info:    External font `cmex10' loaded for size
+(Font)              <10.95> on input line 58.
+LaTeX Font Info:    Trying to load font information for T1+pcr on input line 65
 .
- (/usr/share/texlive/texmf-dist/tex/latex/psnfss/t1pcr.fd
+
+(/usr/share/texlive/texmf-dist/tex/latex/psnfss/t1pcr.fd
 File: t1pcr.fd 2001/06/04 font definitions for T1/pcr.
-)
-Underfull \hbox (badness 10000) in paragraph at lines 78--84
-
- []
-
-[5] [6]
-LaTeX Font Info:    External font `cmex10' loaded for size
-(Font)              <5> on input line 239.
- [7]
-LaTeX Font Info:    External font `cmex10' loaded for size
-(Font)              <10.95> on input line 247.
- [8] [9] [10] [11] [12] (./handbok.aux)
+) [2] [3] [4] [5]
+[6] (./handbok.aux)
 Package rerunfilecheck Info: File `handbok.out' has not changed.
-(rerunfilecheck)             Checksum: 44E483064A2BDE3A9239604064995BF1;4839.
+(rerunfilecheck)             Checksum: ECBFE4FEBCD44F5F8C30B207D2444D69;3812.
 )
 
 Here is how much of LuaTeX's memory you used:
- 9703 strings out of 477805
+ 9675 strings out of 477805
  100000,552014 words of node,token memory allocated
- 544 words of node memory still in use:
-   4 hlist, 1 vlist, 1 rule, 5 glue, 14 kern, 14 attribute, 52 glue_spec, 14 att
-ribute_list, 1 write nodes
-   avail lists: 2:1938,3:394,4:28,5:884,6:107,7:3064,8:75,9:2224,10:24,11:164
- 29998 multiletter control sequences out of 65536+600000
- 78 fonts using 3235519 bytes
- 60i,26n,59p,343b,644s stack positions out of 5000i,500n,10000p,200000b,80000s
+ 473 words of node memory still in use:
+   4 hlist, 1 vlist, 1 rule, 4 glue, 6 kern, 8 attribute, 52 glue_spec, 8 attrib
+ute_list, 1 write nodes
+   avail lists: 2:1920,3:394,4:18,5:857,6:107,7:2767,8:75,9:2277,10:17,11:141
+ 29989 multiletter control sequences out of 65536+600000
+ 66 fonts using 2739843 bytes
+ 60i,26n,59p,205b,642s stack positions out of 5000i,500n,10000p,200000b,80000s
 {/usr/share/texlive/texmf-dist/fonts/enc/dvips/base/8r.enc}</usr/share/texlive/t
-exmf-dist/fonts/type1/public/amsfonts/cm/cmmi12.pfb></usr/share/texlive/texmf-di
-st/fonts/type1/public/amsfonts/cm/cmsy10.pfb></usr/share/texlive/texmf-dist/font
-s/type1/public/amsfonts/latxfont/lcircle1.pfb></usr/share/texlive/texmf-dist/fon
-ts/type1/public/amsfonts/latxfont/line10.pfb></usr/share/texlive/texmf-dist/font
-s/type1/urw/courier/ucrr8a.pfb></usr/share/texlive/texmf-dist/fonts/type1/urw/ti
-mes/utmb8a.pfb></usr/share/texlive/texmf-dist/fonts/type1/urw/times/utmr8a.pfb><
-/usr/share/texlive/texmf-dist/fonts/type1/urw/times/utmri8a.pfb>
-Output written on handbok.pdf (12 pages, 108747 bytes).
+exmf-dist/fonts/type1/public/amsfonts/cm/cmsy10.pfb></usr/share/texlive/texmf-di
+st/fonts/type1/public/amsfonts/latxfont/lcircle1.pfb></usr/share/texlive/texmf-d
+ist/fonts/type1/public/amsfonts/latxfont/line10.pfb></usr/share/texlive/texmf-di
+st/fonts/type1/urw/courier/ucrr8a.pfb></usr/share/texlive/texmf-dist/fonts/type1
+/urw/times/utmb8a.pfb></usr/share/texlive/texmf-dist/fonts/type1/urw/times/utmr8
+a.pfb></usr/share/texlive/texmf-dist/fonts/type1/urw/times/utmri8a.pfb>
+Output written on handbok.pdf (6 pages, 80718 bytes).
 
-PDF statistics: 284 PDF objects out of 1000 (max. 8388607)
- 259 compressed objects within 3 object streams
- 51 named destinations out of 1000 (max. 131072)
- 289 words of extra memory for PDF output out of 10000 (max. 100000000)
+PDF statistics: 230 PDF objects out of 1000 (max. 8388607)
+ 212 compressed objects within 3 object streams
+ 40 named destinations out of 1000 (max. 131072)
+ 257 words of extra memory for PDF output out of 10000 (max. 100000000)
 
