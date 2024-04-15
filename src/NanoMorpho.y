@@ -18,7 +18,7 @@
 %right OP2
 %left OP3
 %left OP4
-%left OP5
+%left OP5_OPNAME
 %left OP6
 %left OP7
 %right UNOP
