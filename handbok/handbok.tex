@@ -49,6 +49,188 @@
 \subsubsection{Athugasemdir}
 \subsubsection{Lykilorð}
 \subsection{Mállýsing}
+<<<<<<< HEAD
+Hér verður sínd myndrit af helstu hlutum í málli okkar
+% Orðum þetta bettur seina.
+\subsubsection{Forrit}
+
+\begin{málrit}{program}
+	\begin{rep}
+		<function>
+	\end{rep}
+\end{málrit}
+
+\subsubsection{Föll}
+
+\begin{málrit}{function}
+	`fun' 
+	\begin{stack}
+		<NAME> \\ <op>
+	\end{stack}
+	 `(' 
+	\begin{repnull}
+		<NAME> 
+	\\
+		`,'  
+	\end{repnull}
+	 `)' `=' <body>
+\end{málrit}
+
+\subsubsection{Stofnar}
+\begin{málrit}{body}
+	`{' 
+	\begin{repnull}	
+		<stmt>
+	\\
+		 `;'
+	\end{repnull}
+	`}' 
+\end{málrit}
+
+\begin{málrit}{stmt}
+	\begin{stack}	
+		`return' <expr>
+	\\
+		<expr>
+	\\
+		<decl>
+	\\
+		<whileexpr>
+	\\
+		<for_loop>
+	\end{stack}
+\end{málrit}
+
+\subsubsection{Skilgreiningar}
+\begin{málrit}{decls}
+	`var' 
+	\begin{rep}
+		<NAME> 
+		\begin{stack}
+	
+		\\		
+			`=' <expr>
+		\end{stack}
+	\end{rep}
+\end{málrit}
+
+
+\subsubsection{Segðir}
+\begin{málrit}{expr}
+	\begin{stack}
+		<LITERAL>
+	\\
+		<NAME>
+		\begin{stack}
+			
+		\\
+			`=' <expr>
+		\\
+			`(' 
+			\begin{repnull}
+				<expr> 
+			\\
+				`,'
+			\end{repnull}
+			`)'
+		\end{stack}
+	\\
+		`(' <expr> `)'
+	\\
+		<ifexpr>
+	\\	
+		<condexpr>
+	\\
+		<matchexpr>
+	\\
+		<unop>
+	\\
+		<binop>
+	\end{stack}
+\end{málrit}
+
+\begin{málrit}{ifexpr}
+	`if' <expr> <body>
+	\begin{stack}
+		
+	\\
+		`else'
+		\begin{stack}
+			<body>
+		\\
+			<ifexpr>
+		\end{stack}
+	\end{stack}
+\end{málrit}
+
+
+\begin{málrit}{condexpr}
+	`cond' `\{' 
+	\begin{repnull}
+		<expr> `=>' <body>
+	\end{repnull}
+	\begin{stack}
+		
+	\\
+		<body>
+	\end{stack}		 
+	 `\}' 
+\end{málrit}
+
+
+\begin{málrit}{matchexpr}
+	`match' expr `\{' 
+	\begin{repnull}
+		<expr> `=>' <body>  
+	\end{repnull}	
+	\begin{stack}
+		
+	\\
+		<body>
+	\end{stack}	
+	`\}'
+\end{málrit}
+
+\begin{málrit}{unop}
+	\begin{stack}
+		<op> <expr>
+	\\
+		`not' <expr>
+	\end{stack}  
+\end{málrit}
+
+\begin{málrit}{binop}
+	<expr> 
+	\begin{stack}	
+		`and'
+	\\
+		`or'
+	\\
+		<OP> 
+	\end{stack}
+	<expr>  
+\end{málrit}
+
+\begin{málrit}{whileexpr}
+	`while' <expr> <body>  
+\end{málrit}
+
+\begin{málrit}{for_loop}
+	`for' `(' 
+	 \begin{stack}
+	 	
+	 \\
+	 	<decal>
+	 \end{stack}
+	 `;' <expr> `;' 
+	 \begin{stack}
+	 	
+	 \\
+	 	<expr>
+	 \end{stack}
+	 `)' <body> 
+\end{málrit}
+
 \section{Merking málsins}
 \subsection{Gildi}
 \subsection{Breytur}
@@ -71,491 +253,5 @@
 xxx
 \subsection{Föll og forrit}
 xxx
-\section{Til hliðsjónar ... hendið þessu eftir notkun}
-xxx
-\subsection{Mállýsing með syntax pakkanum í LaTeX}
-
-Hér er eilítil mállýsing sniðsett með hjálp {\tt syntax} pakkans sem
-nota má í \LaTeX. Þið getið notað þessa aðferð, ef það hentar ykkur,
-til að skilgeina ykkar forritunarmál.
-\\
-\\
-Hér er EBNF fyrir máið okkar.
-
-\begin{grammar}
-<parameter_list> ::= <parameter_list> `,' <NAME>
-	\alt <NAME>
-	\alt \epsilon
-\end{grammar}
-
-\begin{grammar}
-<program> ::= <program> <function>
-	\alt <function>
-\end{grammar}
-
-\begin{grammar}
-<function> ::= `fun' <name_or_op> `(' <parameter_list> `)' `=' <body>
-\end{grammar}
-
-\begin{grammar}
-<name_or_op> ::= <NAME>
-	\alt <op>
-\end{grammar}
-
-\begin{grammar}
-<body> ::= `{' <stmt_list> `}'
-	\alt <expr>
-\end{grammar}
-
-\begin{grammar}
-<stmt_list> ::= <stmt_list> `;' <stmt>
-	\alt <stmt>
-	\alt \epsilon
-\end{grammar}
-
-\begin{grammar}
-<stmt> ::= `return' <expr>
-	\alt <expr>
-	\alt <decl>
-	\alt <whileexpr>
-	\alt <for_loop>
-\end{grammar}
-
-\begin{grammar}
-<decl> ::= `var' <variavle_list> 
-\end{grammar}
-
-\begin{grammar}
-<variavle_list> ::= <variavle>
-	\alt <variavle_list> `,' <variavle>
-\end{grammar}
-
-\begin{grammar}
-<variable> ::= <NAME> <initialiser> 
-\end{grammar}
-
-\begin{grammar}
-<initialiser> ::= `=' <expr>
-	\alt \epsilon
-\end{grammar}
-
-\begin{grammar}
-<op> ::= `op1'
-	\alt `op2'
-	\alt `op3'
-	\alt `op4'
-	\alt `op5'
-	\alt `op6'
-	\alt `op7'
-\end{grammar}
-
-\begin{grammar}
-<expr> ::= `(' <expr> `)'
-	\alt <NAME> `(' <optexprs> `)'
-	\alt <NAME> `=' <expr>
-	\alt <NAME> 
-	\alt <LITERAL>
-	\alt <ifexpr>
-	\alt <condexpr>
-	\alt <matchexpr>
-	\alt <unop>
-	\alt <binop>
-\end{grammar}
-
-\begin{grammar}
-<optexprs> ::= <optexprs> `,' <expr>
-	\alt <expr>
-	\alt \epsilon
-\end{grammar}
-
-\begin{grammar}
-<ifexpr> ::= `if' <expr> <body>
-	\alt `if' <expr> <body> <ifrest>
-\end{grammar}
-
-\begin{grammar}
-<ifrest> ::= `else' <body>
-	\alt `else' <ifexpr>
-\end{grammar}
-
-\begin{grammar}
-<condexpr> ::= `cond' `\{' <conds> <optbody> `\}' 
-\end{grammar}
-
-\begin{grammar}
-<conds> ::= <cond> <conds>
-	\alt \epsilon
-\end{grammar}
-
-\begin{grammar}
-<cond> ::= <expr> `fat_arrow' <body> 
-\end{grammar}
-
-\begin{grammar}
-<matchexpr> ::= `match' <expr `\{' <matchs> <optbody> `\}' 
-\end{grammar}
-
-\begin{grammar}
-<matchs> ::= <match> <matchs>
-	\alt \epsilon
-\end{grammar}
-
-\begin{grammar}
-<match> ::= <expr> `fat_arrow' <body> 
-\end{grammar}
-
-\begin{grammar}
-<unop> ::= <op> <expr>
-	\alt `not' <expr>
-\end{grammar}
-
-\begin{grammar}
-<binop> ::= <expr> `and' <expr>
-	\alt <expr> `or' <expr>
-	\alt <expr> `op1' <expr>
-	\alt <expr> `op2' <expr>
-	\alt <expr> `op3' <expr>
-	\alt <expr> `op4' <expr>
-	\alt <expr> `op5' <expr>
-	\alt <expr> `op6' <expr>
-	\alt <expr> `op7' <expr>
-\end{grammar}
-
-\begin{grammar}
-<whileexpr> ::= `while' <expr> <body> 
-\end{grammar}
-
-\begin{grammar}
-<for_loop> ::= `for' `(' <optdecl> `;' <expr> `;' <optexpr> `)' <body> 
-\end{grammar}
-
-\subsection{Ýmis málrit með hjálp syntax pakkans í LaTeX}
-
-Hér eru nokkur málrit skilgreind með hjálp {\tt syntax} pakkans.
-Breytið þessu eftir þörfum, eða notið aðrar
-aðferðir ef það hentar ykkur betur.
-
-Finna má upplýsingar um {\tt syntax} pakkann
-\htmladdnormallinkfoot{á vefnum}{http://www.tug.org/texlive/Contents/live/texmf-dist/doc/latex/mdwtools/syntax.pdf}.
-
-Takið eftir að ráðlegt er að gera einhverjar breytingar hér,
-þó ekki væri til annars en að gera textalýsingar á merkingu
-einfaldari með tilliti til forgangs ýmissa málfyrirbæra.
-
-\begin{málrit}{parameter_list}
-	\begin{repnull}
-		<NAME> 
-	\\
-		`,'  
-	\end{repnull}
-\end{málrit}%
-
-\subsubsection{Forrit}
-
-\begin{málrit}{program}
-	\begin{rep}
-		<function>
-	\end{rep}
-\end{málrit}
-
-\subsubsection{Föll}
-
-\begin{málrit}{function}
-	`fun' <name_or_op> `(' <parameter_list> `)' `=' <body>
-\end{málrit}
-
-\begin{málrit}{name_or_op}
-	\begin{stack}
-		<NAME> \\ <op>
-	\end{stack}
-\end{málrit}
-
-\subsubsection{Stofnar}
-\begin{málrit}{body}
-	\begin{stack}	
-		<expr>
-	\\
-		`{' 
-		<stmt_list>
-		`}'
-	\end{stack} 
-\end{málrit}
-
-\begin{málrit}{stmt_list}
-	\begin{repnull}	
-		<stmt>
-	\\
-		 `;'
-	\end{repnull}
-\end{málrit}
-
-\begin{málrit}{stmt}
-	\begin{stack}	
-		`return' <expr>
-	\\
-		<expr>
-	\\
-		<decl>
-	\\
-		<whileexpr>
-	\\
-		<for_loop>
-	\end{stack}
-\end{málrit}
-
-\subsubsection{Skilgreiningar}
-\begin{málrit}{decls}
-	`var' <variable_list>
-\end{málrit}
-
-\begin{málrit}{variable_list}
-	\begin{rep}
-		<variable> 
-	\\	
-		`,'
-	\end{rep}
-\end{málrit}
-
-\begin{málrit}{variable}
-	<NAME> <initialiser>
-\end{málrit}
-
-\begin{málrit}{initialiser}
-	\begin{stack}
-		`=' <expr>
-	\\
-		
-	\end{stack}
-\end{málrit}
-
-\begin{málrit}{op}
-	\begin{stack}	
-		`op1'
-	\\
-		`op2'
-	\\
-		`op3'
-	\\
-		`op4'
-	\\
-		`op5'
-	\\
-		`op6'
-	\\
-		`op7'
-	\end{stack}
-\end{málrit}
-
-\subsubsection{Segðir}
-\begin{málrit}{expr}
-	\begin{stack}
-		<LITERAL>
-	\\
-		<NAME>
-		\begin{stack}
-			
-		\\
-			`=' <expr>
-		\\
-			`(' <optexprs> `)'
-		\end{stack}
-	\\
-		`(' <expr> `)'
-	\\
-		<ifexpr>
-	\\	
-		<condexpr>
-	\\
-		<matchexpr>
-	\\
-		<unop>
-	\\
-		<binop>
-	\end{stack}
-\end{málrit}
-
-\begin{málrit}{optexprs}
-	\begin{repnull}
-		<expr> 
-	\\
-		`,'
-	\end{repnull}
-\end{málrit}
-
-\begin{málrit}{ifexpr}
-	`if' <expr> <body>
-	\begin{stack}
-		
-	\\
-		<ifrest>
-	\end{stack}
-\end{málrit}
-
-\begin{málrit}{ifrest}
-	`else'
-	\begin{stack}
-		<body>
-	\\
-		<ifexpr>
-	\end{stack}
-\end{málrit}
-
-\begin{málrit}{condexpr}
-	`cond' `\{' <conds> <optbody> `\}' 
-\end{málrit}
-
-\begin{málrit}{conds}
-	\begin{repnull}
-		<cond>
-	\end{repnull}
-\end{málrit}
-
-\begin{málrit}{cond}
-	 <expr> `fat_arrow' <body>  
-\end{málrit}
-
-\begin{málrit}{matchexpr}
-	`match' expr `\{' <matchs> <optbody> `\}'
-\end{málrit}
-
-\begin{málrit}{matchs}
-	\begin{repnull}
-		<match>
-	\end{repnull}
-\end{málrit}
-
-\begin{málrit}{match}
-	 <expr> `fat_arrow' <body>  
-\end{málrit}
-
-\begin{málrit}{unop}
-	\begin{stack}
-		<op> <expr>
-	\\
-		`not' <expr>
-	\end{stack}  
-\end{málrit}
-
-\begin{málrit}{binop}
-	<expr> 
-	\begin{stack}	
-		`and'
-	\\
-		`or'
-	\\
-		`op1'
-	\\
-		`op2'
-	\\
-		`op3' 
-	\\
-		`op4'
-	\\
-		`op5'
-	\\
-		`op6'
-	\\
-		`op7' 
-	\end{stack}
-	<expr>  
-\end{málrit}
-
-\begin{málrit}{whileexpr}
-	`while' <expr> <body>  
-\end{málrit}
-
-\begin{málrit}{for_loop}
-	`for' `(' <optdecl> `;' <expr> `;' <optexpr> `)' <body> 
-\end{málrit}
-
-\subsubsection{Annar möguleiki}
-ég veit ekke hvað við eigjum að stja inn hérna.
-
-\begin{málrit}{expr}
-	\begin{stack}
-		`return' <expr>
-	\\
-		<id> `=' <expr>
-	\\
-		<or_expr>
-	\end{stack}
-\end{málrit}
-
-\begin{málrit}{or_expr}
-	\begin{rep}
-		<and_expr>
-	\\
-		`||'
-	\end{rep}
-\end{málrit}
-
-\begin{málrit}{and_expr}
-	\begin{rep}
-		<not_expr>
-	\\
-		`&&'
-	\end{rep}
-\end{málrit}
-
-\begin{málrit}{not_expr}
-	\begin{repnull}
-		`!'
-	\end{repnull}
-	<binop_expr>
-\end{málrit}
-
-\begin{málrit}{binop_expr}
-	\begin{rep}
-		<small_expr>
-	\\
-		<op>
-	\end{rep}
-\end{málrit}
-
-\begin{málrit}{small_expr}
-	\begin{stack}
-		<op> <small_expr>
-	\\
-		`(' expr `)'
-	\\
-		<id>
-		\begin{stack}
-		\\
-		`('
-		\begin{repnull}
-			<expr>
-		\\
-			`,'
-		\end{repnull}
-		`)'
-		\end{stack}
-	\\
-		`while' expr  <body>
-	\\
-		`if' expr <body> <if_rest>
-	\\
-		`['
-		\begin{repnull}
-			<expr>
-		\\
-			`,'
-		\end{repnull}
-		`]'
-	\\
-		<int>
-	\\
-		<float>
-	\\
-		<string>
-	\\
-		<char>
-	\\
-		`true'
-	\\
-		`false'
-	\\
-		`null'
-	\end{stack}
-\end{málrit}
 
 \end{document}
