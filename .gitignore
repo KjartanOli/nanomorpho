@@ -3,6 +3,7 @@ NanoMorphoLexer.java
 *~
 \#*\#
 .#*
+*.jar
 *.class
 *.patch
 *.mexe
