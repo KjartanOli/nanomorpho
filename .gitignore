@@ -17,5 +17,5 @@ NanoMorphoLexer.java
 *.pdf
 *.out
 auto
-{/*
+**/{
 main.*
