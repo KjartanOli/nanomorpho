@@ -46,10 +46,250 @@
 \section{Notkun og uppsetning}
 \section{Málfræði}
 \subsection{Frumeiningar málsins}
+\begin{málrit}{DIGIT}
+	\begin{stack}
+		`0'
+	\\
+		`1'
+	\\
+		`2'
+	\\
+		`3'
+	\\
+		`4'
+	\\
+		`5'
+	\\
+		`6'
+	\\
+		`7'
+	\\
+		`8'
+	\\
+		`9'
+	\end{stack}
+\end{málrit}
+
+\begin{málrit}{FLOAT}
+	\begin{rep}
+		<DIGIT>	
+	\end{rep}
+	`.'
+	\begin{rep}
+		<DIGIT>	
+	\end{rep}
+	\begin{stack}
+		
+	\\
+		\begin{stack}
+			`e'
+		\\
+			`E'
+		\end{stack}
+		\begin{stack}
+			`+'
+		\\
+			`-'
+		\end{stack}
+		\begin{rep}
+			<DIGIT>	
+		\end{rep}
+	\end{stack}
+\end{málrit}
+
+\begin{málrit}{INT}
+	\begin{rep}		
+		<DIGIT>
+	\end{rep}
+\end{málrit}
+
+\begin{málrit}{CHAR}
+	`''
+	\begin{stack}
+		\begin{stack}
+			"any character except" `''
+		\\
+			`\textbackslash '
+		\end{stack}
+	\\
+		`\textbackslash ' ` ' '
+	\\
+		`\textbackslash ' `\textbackslash '
+	\\
+		`\textbackslash ' `n'
+	\\
+		`\textbackslash ' `r'
+	\\
+		`\textbackslash ' `t'
+	\\
+		`\textbackslash ' `b'
+	\\
+		`\textbackslash ' `f'
+	\\
+		`\textbackslash ' <octal>
+	\\
+		`\textbackslash ' <octal> <octal>
+	\\
+		`\textbackslash ' 
+		\begin{stack}
+			`0'
+		\\
+			`1'
+		\\
+			`2'
+		\\
+			`3'
+		\end{stack}
+		<octal> <octal>
+	\end{stack}
+	`''
+\end{málrit}
+
+\begin{málrit}{STRING}
+	`"'
+	\begin{stack}
+		
+	\\
+		\begin{rep}
+			\begin{stack}		
+				\begin{stack}
+					"any character except" 
+					`"'
+				\\
+					`\textbackslash '
+				\end{stack}
+			\\
+				`\textbackslash ' ` ' '
+			\\
+				`\textbackslash ' `\textbackslash '
+			\\
+				`\textbackslash ' `n'
+			\\
+				`\textbackslash ' `r'
+			\\
+				`\textbackslash ' `t'
+			\\
+				`\textbackslash ' `b'
+			\\
+				`\textbackslash ' `f'
+			\\
+				`\textbackslash ' <octal>
+			\\
+				`\textbackslash ' <octal> <octal>
+			\\
+				`\textbackslash ' 
+				\begin{stack}
+					`0'
+				\\
+					`1'
+				\\
+					`2'
+				\\
+					`3'
+				\end{stack}
+				<octal> <octal>
+			\end{stack}
+		\end{rep}
+	\end{stack}
+	`"'
+\end{málrit}
+
+\begin{málrit}{octal}
+	\begin{stack}
+		`0'
+	\\
+		`1'
+	\\
+		`2'
+	\\
+		`3'
+	\\
+		`4'
+	\\
+		`5'
+	\\
+		`6'
+	\\
+		`7'
+	\end{stack}
+\end{málrit}
+
+\begin{málrit}{literali}
+	\begin{stack}
+		<INT>
+	\\
+		<FLOAT>
+	\\
+		<CHAR>
+	\\
+		<STRING>
+	\\
+		`true'
+	\\
+		`false'
+	\\
+		`null'
+	\end{stack}
+\end{málrit}
+
+\begin{málrit}{NAME}
+	\begin{stack}
+		<alpha>
+	\\
+		`_'
+	\end{stack}	
+	\begin{repnull}	
+		\begin{stack}
+			<alpha>
+		\\		
+			`_'
+		\\
+			<DIGIT>
+		\end{stack}
+	\end{repnull}
+\end{málrit}
+
+\begin{málrit}{alpha}
+	"any Unicode character defined as Alphabetic"
+\end{málrit}
+
+\begin{málrit}{OP}
+	\begin{stack}
+		`?'
+	\\
+		`~'
+	\\
+		`^'
+	\\
+		`:'
+	\\
+		`|'
+	\\
+		`&'
+	\\
+		`<'
+	\\
+		`>'
+	\\
+		`='
+	\\
+		`!'
+	\\
+		`+'
+	\\
+		`-'
+	\\
+		`*'
+	\\
+		`/'
+	\\
+		`\%'
+	\end{stack}
+\end{málrit}
+
 \subsubsection{Athugasemdir}
 \subsubsection{Lykilorð}
 \subsection{Mállýsing}
-<<<<<<< HEAD
 Hér verður sínd myndrit af helstu hlutum í málli okkar
 % Orðum þetta bettur seina.
 \subsubsection{Forrit}
@@ -65,7 +305,7 @@ Hér verður sínd myndrit af helstu hlutum í málli okkar
 \begin{málrit}{function}
 	`fun' 
 	\begin{stack}
-		<NAME> \\ <op>
+		<NAME> \\ <OP>
 	\end{stack}
 	 `(' 
 	\begin{repnull}
@@ -193,7 +433,7 @@ Hér verður sínd myndrit af helstu hlutum í málli okkar
 
 \begin{málrit}{unop}
 	\begin{stack}
-		<op> <expr>
+		<OP> <expr>
 	\\
 		`not' <expr>
 	\end{stack}  
