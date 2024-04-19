@@ -104,15 +104,15 @@
 \end{málrit}
 
 \begin{málrit}{CHAR}
-	`''
+	`\''
 	\begin{stack}
 		\begin{stack}
-			"any character except" `''
+			"any character except" `\''
 		\\
 			`\textbackslash '
 		\end{stack}
 	\\
-		`\textbackslash ' ` ' '
+		`\textbackslash ' `\''
 	\\
 		`\textbackslash ' `\textbackslash '
 	\\
@@ -142,7 +142,7 @@
 		\end{stack}
 		<octal> <octal>
 	\end{stack}
-	`''
+	`\''
 \end{málrit}
 
 \begin{málrit}{STRING}
@@ -159,7 +159,7 @@
 					`\textbackslash '
 				\end{stack}
 			\\
-				`\textbackslash ' ` ' '
+				`\textbackslash ' `"'
 			\\
 				`\textbackslash ' `\textbackslash '
 			\\
@@ -254,37 +254,39 @@
 \end{málrit}
 
 \begin{málrit}{OP}
-	\begin{stack}
-		`?'
-	\\
-		`~'
-	\\
-		`^'
-	\\
-		`:'
-	\\
-		`|'
-	\\
-		`&'
-	\\
-		`<'
-	\\
-		`>'
-	\\
-		`='
-	\\
-		`!'
-	\\
-		`+'
-	\\
-		`-'
-	\\
-		`*'
-	\\
-		`/'
-	\\
-		`\%'
-	\end{stack}
+	\begin{rep}	
+		\begin{stack}
+			`?'
+		\\
+			`~'
+		\\
+			`^'
+		\\
+			`:'
+		\\
+			`|'
+		\\
+			`&'
+		\\
+			`<'
+		\\
+			`>'
+		\\
+			`='
+		\\
+			`!'
+		\\
+			`+'
+		\\
+			`-'
+		\\
+			`*'
+		\\
+			`/'
+		\\
+			`\%'
+		\end{stack}
+	\end{rep}
 \end{málrit}
 
 \subsubsection{Athugasemdir}
