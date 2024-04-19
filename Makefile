@@ -1,19 +1,13 @@
-all: NanoMorpho.class
+all: nano-morpho.jar
 
-%.class: %.java
-	javac $^
+nano-morpho.jar: src/nano-morpho.jar
+	cp src/nano-morpho.jar nano-morpho.jar
 
-NanoMorpho.class NanoMorphoLexer.class SymbolTable.class: NanoMorpho.java NanoMorphoLexer.java SymbolTable.java
-	javac $^
-
-NanoMorpho.java: NanoMorpho.y
-	bison $^
-
-NanoMorphoLexer.java: NanoMorpho.jflex
-	~/.local/bin/jflex $^
+.PHONY: src/nano-morpho.jar
+src/nano-morpho.jar:
+	$(MAKE) -C src
 
 .PHONY: clean
 clean:
-	find . -name "*.class" -delete
-	find . -name NanoMorpho.java -delete
-	find . -name NanoMorphoLexer.java -delete
+	find . -name "nano-morpho.jar" -delete
+	$(MAKE) -C src clean
