@@ -2,4 +2,23 @@ fun f(a, b) = {
     return a;
 }
 
-fun g(a) = -a
+fun g(a) = { -a; }
+
+fun main() = {
+	var x = 5, y = x * 2;
+	println(2 ** 0);
+	println(2 ** 1);
+	println(2 ** 2);
+	var z = 0;
+	println(2 ** 3);
+	println(2 ** 4);
+	println(2 ** 5);
+}
+
+fun t() = {
+    var x = 5;
+    var y = {
+        var x = x + 1;
+        x;
+    }
+}
