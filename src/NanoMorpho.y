@@ -203,7 +203,7 @@ variable: NAME initialiser { st.addVar($NAME); $$ = new Variable($initialiser); 
 
 initialiser
     : '=' expr { $$ = $expr; }
-    | %empty { $$ = null; }
+    | %empty { $$ = new Literal("null"); }
     ;
 
 variable_list
