@@ -16,6 +16,10 @@ NanoMorphoLexer.java
 *.toc
 *.pdf
 *.out
+doc/*.png
+doc/*.cp
+doc/*.cps
+*.info
 auto
 **/{
 main.*

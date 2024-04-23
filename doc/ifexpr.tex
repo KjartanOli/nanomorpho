@@ -1,0 +1,15 @@
+\documentclass[convert={outext=.png}]{standalone}
+\input{env}
+
+\begin{document}
+\begin{málrit}{ifexpr}
+	`if' <expr> <body>
+	\begin{stack}\\
+		`else'
+		\begin{stack}
+			<body>\\
+			<ifexpr>
+		\end{stack}
+	\end{stack}
+\end{málrit}
+\end{document}

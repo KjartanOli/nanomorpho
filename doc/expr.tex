@@ -1,0 +1,26 @@
+\documentclass[convert={outext=.png}]{standalone}
+\input{env}
+
+\begin{document}
+\begin{málrit}{expr}
+	\begin{stack}
+		<LITERAL>\\
+		<NAME>
+		\begin{stack}\\
+			`=' <expr>\\
+			`('
+			\begin{repnull}
+				<expr>\\
+				`,'
+			\end{repnull}
+			`)'
+		\end{stack}\\
+		`(' <expr> `)'\\
+		<ifexpr>\\
+		<condexpr>\\
+		<matchexpr>\\
+		<unop>\\
+		<binop>
+	\end{stack}
+\end{málrit}
+\end{document}

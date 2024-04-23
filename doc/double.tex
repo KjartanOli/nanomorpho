@@ -1,0 +1,28 @@
+\documentclass[convert={outext=.png}]{standalone}
+\input{env}
+\begin{document}
+
+\begin{málrit}{FLOAT}
+	\begin{rep}
+		<DIGIT>
+	\end{rep}
+	`.'
+	\begin{rep}
+		<DIGIT>
+	\end{rep}
+	\begin{stack}
+	\\
+		\begin{stack}
+			`e'\\
+			`E'
+		\end{stack}
+		\begin{stack}
+			`+'\\
+			`-'
+		\end{stack}
+		\begin{rep}
+			<DIGIT>
+		\end{rep}
+	\end{stack}
+\end{málrit}
+\end{document}

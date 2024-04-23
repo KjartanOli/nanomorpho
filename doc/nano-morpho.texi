@@ -1,0 +1,729 @@
+\input texinfo
+@include version.texi
+@settitle NanoMorpho @value{VERSION}
+
+@copying
+This manual is for NanoMorpho (version @value{VERSION},
+@value{UPDATED}), a small programming language written for TÖL202M
+(Compilers) at the University of Iceland.
+
+@quotation
+Permission is granted to copy, distribute and/or modify this document
+under the terms of the GNU Free Documentation License, Version 1.3 or
+any later version published by the Free Software Foundation; with no
+Invariant Sections, with no Front-Cover Texts, and with no Back-Cover
+Texts.  A copy of the license is included in the section entitled
+``GNU Free Documentation License''.
+@end quotation
+@end copying
+
+@dircategory Software development
+@direntry
+* NanoMorpho: (nano-morpho).    A small programming language.
+@end direntry
+
+@titlepage
+@title NanoMorpho
+@subtitle for version @value{VERSION}, @value{UPDATED}
+@author Kjartan Óli Ágústsson (@email{koa20@@hi.is})
+@author Sturla Freyr Magnússon (@email{sfm1@@hi.is})
+@author Birgir Sigurson (@email{bis46@@hi.is})
+@page
+
+@vskip 0pt plus 1filll
+@insertcopying
+@end titlepage
+
+@contents
+
+@node Top
+@top NanoMorpho
+
+This manual is for NanoMorpho (version @value{VERSION}),
+@value{UPDATED}.
+
+@menu
+* Introduction::
+* Installation::
+* Usage::
+* Elements of the Language::
+* Auxiliary syntax diagrams::
+* Appendix::
+@end menu
+
+@node Introduction
+@chapter Introduction
+NanoMorpho is a small and relatively simple programming language created
+for the course TÖL202M (Compilers) at the University of Iceland.
+NanoMorpho is itself based on Morpho created by Snorri Agnarsson.
+
+@node Installation
+@chapter Installation
+
+@menu
+* Getting the code::
+* Dependencies::
+* Building::
+@end menu
+@node Getting the code
+@section Getting the code
+The source code for NanoMorpho is hosted at
+@url{https://github.com/kjartanoli/nanomorpho/} and can be retrieved
+either via @code{git clone} or GitHub's option of downloading a
+repository as a ZIP file.
+
+@node Dependencies
+@section Dependencies
+NanoMorpho has two kinds of dependencies:
+@table @samp
+@item Build time dependencies
+Dependencies required to build and install NanoMorpho.
+@item Runtime dependencies
+Dependencies required to use the NanoMorpho compiler.
+@end table
+
+@menu
+* Build Time Dependencies::
+* Runtime Dependencies::
+@end menu
+
+@node Build Time Dependencies
+@subsection Build Time Dependencies
+NanoMorpho requires the following dependencies to build:
+@itemize @bullet
+@item JFlex @url{https://jflex.de/}
+@item Bison
+@item GNU Make, or other Make implementation
+@item A Java compiler
+@end itemize
+
+@node Runtime Dependencies
+@subsection Runtime Dependencies
+In addition to the NanoMorpho compiler, compiling a NanoMorpho program
+requires the following:
+@itemize @bullet
+@item A Java Runtime Environment (JRE)
+@item A Morpho compiler
+@end itemize
+
+The NanoMorpho compiler produces Morpho executables as such running a
+NanoMorpho program requires a Morpho Runtime Environment.
+
+@node Building
+@section Building
+Assuming the necessary dependencies are installed, building the
+NanoMorpho compiler is as simple as running @command{make} in the root of
+the NanoMorpho source tree.  This will produce the file
+@file{nano-morpho.jar}, which contains the NanoMorpho compiler.
+
+@node Usage
+@chapter Usage
+To compile a NanoMorpho  program contained in the file
+@file{@var{filename}.nm} run:
+
+@samp{java -jar nano-morpho.jar @var{filename}.nm}
+
+This will compile the code contained in @file{@var{filename}.nm} to a Morpho
+module suitable for processing by the Morpho compiler and write that
+module to standard output.  Thus to produce a runable program the full
+command becomes:
+
+@samp{java -jar nano-morpho.jar @var{filename}.nm | java -jar morpho.jar
+-c}
+
+Piping the NanoMorpho compiler's output into the Morpho compiler to
+produce @file{@var{filename}.mexe}, a Morpho executable file which can
+then be run with:
+
+@samp{java -jar morpho.jor @var{filename}}
+
+@node Elements of the Language
+@chapter Elements of the Language
+This chapter documents the syntax and semantics of the various
+constructs from which a NanoMorpho program is composed, such as
+functions, variables, loops, conditionals, etc.
+
+@menu
+* Keywords::
+* Special Symbols::
+* Comments::
+* Names::
+* Operator Names::
+* Bodies::
+* Program::
+* Functions::
+* Variables::
+* Statements::
+* Expressions::
+@end menu
+
+@node Keywords
+@section Keywords
+NanoMorpho has the following keywords:
+@itemize
+@item
+@code{if}
+@item
+@code{else}
+@item
+@code{cond}
+@item
+@code{match}
+@item
+@code{while}
+@item
+@code{for}
+@item
+@code{var}
+@item
+@code{fun}
+@item
+@code{return}
+@item
+@code{and}
+@item
+@code{or}
+@item
+@code{not}
+@end itemize
+
+@node Special Symbols
+@section Special Symbols
+NanoMorpho gives special meaning to these symbols @verb{|(){},;=|}.
+Along with their special meaning these symbols also act as delimiters
+between other elements of the language, as does whitespace.
+
+@node Comments
+@section Comments
+A comment is started by @verb{|;;;|} and extends to the end of the line.
+Comments are exclusively intended for human readers of the code and are
+completely ignored by the compiler.
+
+@node Names
+@section Names
+Names are used to refer to functions (@pxref{Functions}) and variables
+(@pxref{Variables}).  The syntax of names is defined by @ref{stx:name}.
+
+@float Figure,stx:name
+@image{name}
+@caption{The syntax of a name}
+@end float
+
+@node Operator Names
+@section Operator Names
+NanoMorpho supports defining new operators (@pxref{Binary and Unary
+Operations}).  Any function whose name conforms to @ref{stx:opname} can
+be used as an operator.
+
+@float Figure,stx:opname
+@image{opname}
+@caption{The syntax of an operator name}
+@end float
+
+@node Bodies
+@section Bodies
+Many language elements in NanoMorpho have one or more @dfn{bodies}, the
+syntax of which is defined by @ref{stx:body}.  A body is a sequence of
+statements (@pxref{Statements}) surrounded by curly braces @verb{|{}|}.
+The statements of a body are evaluated from top to bottom and unless
+otherwise specified the value of a body is the value of its last
+statement.  A body introduces a new scope (@pxref{Variable Scopes}).
+
+@float Figure,stx:body
+@image{body}
+@caption{The syntax of a body}
+@end float
+
+@node Program
+@section Program
+A NanoMorpho program consists of one or more functions
+(@pxref{Functions}).  No other language elements are allowed at the top
+level.  One of these functions must be named @code{main} and take zero
+arguments.  That function will be the entry point of the program when it
+starts execution.
+
+@float Figure,stx:prog
+@image{prog}
+@caption{The syntax of a NanoMorpho program}
+@end float
+
+@node Functions
+@section Functions
+A NanoMorpho program is composed of fuctions, the syntax of which is
+defined by @ref{stx:fun}.  A function is a named segment of code which
+can be evaluated any number of times (@pxref{Function Calls}).  The
+value resulting from each evaluation (@dfn{call}) of the function is
+called its @dfn{return value} and is the value of the last statement in
+the function's body unless the function's evaluation is terminated early
+by a @code{return} statement (@pxref{Return Statement}), in which case
+the return value is the value of that @code{return} statement.
+
+A function definition can specify any number of @dfn{parameters} between
+the parenthesis.  Each parameter is a variable (@pxref{Variables}) whose
+value is specified when the function is called, allowing the function's
+caller to pass information to it.
+
+@float Figure,stx:fun
+@image{fun}
+@caption{The syntax of a function}
+@end float
+
+@node Variables
+@section Variables
+Variables are named locations in memory in which values can be stored
+for later use.  Variables are created, and optionally initialised, by a
+declaration (@pxref{Variable Declarations}) and their value can be
+retrieved (@pxref{Variable Expression}) and modified (@pxref{Assignment
+Expression}).
+
+@menu
+* Variable Scopes::
+@end menu
+
+@node Variable Scopes
+@subsection Variable Scopes
+Each variable has a @dfn{scope} which determines where in a program that
+variable can be accessed.  A variable which can be accessed is said to
+be @dfn{in scope}, a variable which can not be accessed is said to be
+@dfn{out of scope}.
+
+Every body (@pxref{Bodies}) defines a new scope, which spans every
+statement within that body.  A variable enters scope at the evaluation
+of its declaration (@pxref{Variable Declarations}) and remains in scope
+until the program exits the body in which that declaration took place.
+Thus every statement following a variable declaration within the same
+body can access that variable, any statement preceding the variable's
+declaration can not access the variable.
+
+@menu
+* Nested Scopes::
+* Shadowing::
+@end menu
+
+@node Nested Scopes
+@subsubsection Nested Scopes
+Many language elements which can be found inside a body do themselves
+consist, amongst other things, of one or more bodies.  When this happens
+each of the inner bodies creates a @dfn{nested scope}.  Any statement
+inside the inner body can access variables in the outer body's scope
+(the @dfn{outer scope}), but statements in the outer body can not access
+variables in the nested scope.
+
+@node Shadowing
+@subsubsection Shadowing
+A variable declared in a nested scope can have the same name as a
+variable declared in one of the outer scopes.  When this happens the
+inner variable is said to @dfn{shadow} the outer one.  For the duration
+of the shadowing variable's scope the name refers to that variable and
+the outer variable becomes inaccessible.  Any statement that comes
+before the shadowing declaration can still access the outer variable, as
+can the shadowing variable's initialiser (@pxref{Variable Declarations}).
+
+@node Statements
+@section Statements
+A body in NanoMorpho is composed of a series of statements.  The syntax
+of a statement is defined by @ref{stx:stmt}.  In a normal program most
+of these statements will probably be simple expressions
+(@pxref{Expressions}), this section describes the other types of
+statements available in NanoMorpho.
+
+@float Figure,stx:stmt
+@image{stmt}
+@caption{The syntax of a statement}
+@end float
+
+@menu
+* Variable Declarations::
+* Return Statement::
+* While Loops::
+* For Loops::
+@end menu
+
+@node Variable Declarations
+@subsection Variable Declarations
+A variable declaration creates one or more variables (@pxref{Variables})
+and optionally initialises them with a value.  The syntax of a variable
+declaration is defined by @ref{stx:decl}.  The expression following a
+variable name in a declaration is that variable's @dfn{initialiser}, its
+value determines the initial value of the variable.  if an initialiser
+is omitted the variable is initialised to @code{null}.
+
+@float Figure,stx:decl
+@image{decl}
+@caption{The syntax of a variable declaration}
+@end float
+
+@node Return Statement
+@subsection Return Statement
+The return statement causes an early @dfn{return} from the execution of
+a function.  This means that control returns to the call site of the
+function without evaluating any statements remaining in the function's
+body.  If an expression is provided as part of a return statement the
+value of that expression becomes the value of the function, if an
+expression is not provided the value of the function is undefined.
+
+@node While Loops
+@subsection While Loops
+A while loop provides a simple facility to express code whole execution
+should be repeated.  Its syntax is defined by @ref{stx:while}.  The
+expression following the @code{while} keyword is known as the loop's
+@dfn{condition}, when the program reaches the loop its condition is
+evaluated, if it evaluates to @code{true} the loop's body is executed.
+The condition is then checked again, if it still evaluates to
+@code{true} the body is run again.  This repeats until such a time that
+the condition evaluates to @code{false}, at which point the program will
+proceed to the statement following the loop.  The value of a while loop
+is undefined.
+
+@float Figure,stx:while
+@image{while}
+@caption{The syntax of a while loop}
+@end float
+
+@node For Loops
+@subsection For Loops
+A for loop provides a looping facility designed for the common occasion
+of repeating a piece of code a certain number of times, incrementing a
+counter each time.  Its syntax is defined in @ref{stx:for}.
+
+A for loop consists of an @dfn{initialiser}, a @dfn{condition}, a
+@dfn{increment expression}, and a body.  The execution of a for loops
+proceeds as follows:
+@enumerate
+@item
+The initialiser is evaluated.
+@item
+The condition is checked.  If it evaluates to @code{false} execution of
+the loop stops and the program proceeds to the statement following the
+loop, otherwise the execution of the loops continues.
+@item
+The body of the loop is evaluated.
+@item
+The increment expression is evaluated.
+@item
+The program returns to step 2.
+@end enumerate
+
+A for loop introduces a new scope, so any variables declared in the
+initialiser exist only for the duration of the loop.  A for loop is no
+more powerful than a while loop, any for loop has an equivalent while
+loop.  The value of a for loop is undefined.
+
+@float Figure,stx:for
+@image{for}
+@caption{The syntax of a for loop}
+@end float
+
+@node Expressions
+@section Expressions
+The syntax of a NanoMorpho expression is defined by @ref{stx:expr}.  The
+syntax and semantics of the various types of expressions are documenting
+in the following sections.
+
+@float Figure,stx:expr
+@image{expr}
+@caption{The syntax of an expression}
+@end float
+@menu
+* Literals::
+* Binary and Unary Operations::
+* If Expressions::
+* The Cond Expression::
+* The Match Expression::
+* Function Calls::
+* Variable Expression::
+* Assignment Expression::
+* Logical Expressions::
+@end menu
+@node Literals
+@subsection Literals
+Literal expressions in NanoMorpho evaluate to integers, doubles,
+characters, boolean values, strings, and the null reference. Evaluating
+a literal has no side effect.
+
+@menu
+* Integer Literals::
+* Double Literals::
+* Character Literals::
+* String Literals::
+* Boolean Literals::
+* The null Literal::
+@end menu
+
+@node Integer Literals
+@subsubsection Integer Literals
+The syntax of integer literals is defined by @ref{stx:int}.  Integer
+literals can be any number of digits. The value of an integer literal is
+a corresponding Java Integer object, a Java Long object or a Java
+BigInteger object. There is no limit on the size of an integer literal.
+
+@float Figure,stx:int
+@image{int}
+@caption{The syntax of an Integer literal}
+@end float
+
+@node Double Literals
+@subsubsection Double Literals
+The syntax of double literals is defined by @ref{stx:double}.  The value
+of a double literal is a corresponding Java Double object.
+
+@float Figure,stx:double
+@image{double}
+@caption{The syntax of a Double literal}
+@end float
+
+@node Character Literals
+@subsubsection Character Literals
+The syntax of a character literal is defined by @ref{stx:char}.  The
+value of a character literal is a corresponding Java Character object.
+
+@float Figure,stx:char
+@image{char}
+@caption{The syntax of a Character literal}
+@end float
+
+@node String Literals
+@subsubsection String Literals
+The syntax of a string literal is defined by @ref{stx:string}.  The
+value of a string literal is a corresponding Java String object.
+
+@float Figure,stx:string
+@image{string}
+@caption{The syntax of a String literal}
+@end float
+
+@node Boolean Literals
+@subsubsection Boolean Literals
+The literals @code{true} and @code{false} are boolean literals. The
+value of a boolean literal is a corresponding Java Boolean object.
+
+@node The null Literal
+@subsubsection The null Literal
+The literal @code{null} is the null literal. Its value is the Java null
+reference.
+
+@node Binary and Unary Operations
+@subsection Binary and Unary Operations
+Unary and binary operations in NanoMorpho are function calls to
+functions with one and two arguments respectively.  Thus @samp{1 + 2} is
+a call to the function @code{+} with arguments @code{1} and @code{2} and
+@samp{-(1 + 2)} is a call to the function @code{-} with the result of
+@code{1 + 2} as its argument.  The syntax of a binary operation is
+defined by @ref{stx:binop}, the syntax of a unary operation is defined
+by @ref{stx:unop}.@footnote{The logical operators @code{and}, @code{or},
+and @code{not} are documented separately in @ref{Logical Expressions}.}
+
+@float Figure,stx:binop
+@image{binop}
+@caption{The syntax of a binary operation}
+@end float
+
+@float Figure,stx:unop
+@image{unop}
+@caption{The syntax of a unary operation}
+@end float
+
+@menu
+* Operator Precedence::
+* Operator Associativity::
+@end menu
+
+@node Operator Precedence
+@subsubsection Operator Precedence
+Binary operators have various different precedences but all unary
+operators have the same precendence which is higher that that of binary
+operators.  The precedence of a binary operator depends on the first
+letter of the operator.  Table @ref{tab:precedence} shows the various
+precedences.  A higher precedence operator will be applied before a
+lower precedence operator, unless parentheses imply otherwise.
+
+@float Table,tab:precedence
+@multitable {Precedence} {First letter}
+@headitem Precedence @tab First letter
+@item 7 @tab @samp{*}, @samp{/} or @samp{%}
+@item 6 @tab @samp{+} or @samp{-}
+@item 5 @tab @samp{<}, @samp{>}, @samp{!}, or @samp{=}
+@item 4 @tab @samp{&}
+@item 3 @tab @samp{|}
+@item 2 @tab @samp{:}
+@item 1 @tab @samp{?}, @samp{~}, or @samp{^}
+@end multitable
+@caption{Operator Precedence}
+@end float
+
+@node Operator Associativity
+@subsubsection Operator Associativity
+Binary operators with precedence 2 (@pxref{tab:precedence}) associate to
+the right.  All other operators associate to the left.
+
+@node If Expressions
+@subsection If Expressions
+The if expression provides a facility for conditional execution.  The
+syntax of an if expression is defined by @ref{stx:if}.  The expression
+following the @code{if} keyword is the @var{condition}, the body
+following the @var{condition} is the @var{thenpart}, the optional body
+or if expression following the @code{else} is the @var{elsepart}.
+
+The value of an if expression is determined by first evaluating the
+@var{condition}, if it is @code{true} @var{thenpart} is evaluated and
+its value is the value of the whole expression, if the value of
+@var{condition} is @code{false} @var{elsepart} is evaluated and its
+value is the value of the expression.  If the value of @var{condition}
+is false and @var{elsepart} is omitted the value of the if expression is
+undefined.
+
+@float Figure,stx:if
+@image{ifexpr}
+@caption{The syntax of an if expression}
+@end float
+
+@node The Cond Expression
+@subsection The Cond Expression
+The cond expression provides an alternate syntax to evaluating a series
+of conditions and selecting the first one that evaluates to @code{true}
+traditionally achieved by chaining @code{if} @code{else} statements
+like:
+@verbatim
+if (cond1) {
+   body1
+} else if (cond2) {
+  body2
+}
+...
+@end verbatim
+The syntax of a cond expression is defined by @ref{stx:cond}.  The
+expressions of a cond statement are evaluated in the order they appear,
+for the first one that evaluates to @code{true} the corresponding body
+is evaluated and its value becomes the value of the cond expression, no
+further expressions or bodies are evaluated.  If none of the expressions
+evaluate to @code{true} the final body is evaluated and its value
+becomes the value of the cond expression.  If none of the expressions
+evaluate to @code{true} and a final body is not present the value of the
+cond expression is undefined.
+
+@float Figure,stx:cond
+@image{cond}
+@caption{The syntax of a cond expression}
+@end float
+
+@node The Match Expression
+@subsection The Match Expression
+The match expression provides a convenient syntax for comparing a single
+value to multiple.  Its syntax is defined in @ref{stx:match}.  Each
+pairing of an expression and a body separated by @code{=>} is called a
+@dfn{clause}.
+
+A match expression is evaluated as follows:
+@enumerate
+@item
+The first expression is evaluated
+@item
+The value of the expression is compared to the value of the each
+clause's expression.  If the comparison returns @code{true} the
+corresponding body is evaluated and its value becomes the value of the
+match expressions
+@item
+If none of the comparisons evaluate to @code{true} the final body is
+evaluated and its value becomes the value of the match expression.  If
+no final body is present the value of the match expression is undefined.
+@end enumerate
+
+@float Figure,stx:match
+@image{match}
+@caption{The syntax of a match expression}
+@end float
+
+@node Function Calls
+@subsection Function Calls
+A function call is performed by specifying the name of a function
+followed by parenthesis, within these parentheses are placed zero or
+more expressions separated by commas.  These expressions are the
+function call's @dfn{arguments}, which provide the values for the
+function's parameters (@pxref{Functions}).  A function call proceeds as
+follows:
+@enumerate
+@item
+The arguments are evaluated left to right
+@item
+The program calls the function, moving the point of execution from the
+current function to the called one.
+@item
+The called function is executed and its return value, if any, is returned.
+@item
+The program continues executing the expression following the function call.
+@end enumerate
+
+
+@node Variable Expression
+@subsection Variable Expression
+A variable expression retrieves the value of a variable.  Its syntax is
+simply the name of the variable.  Its value is the value stored in the
+variable at the time the expression is evaluated.
+
+@node Assignment Expression
+@subsection Assignment Expression
+An assignment expression changes the value of a variable @var{var} to
+the value of some expression @var{expr}.  Its syntax is @samp{@var{var}
+= @var{expr}}.  The value of an assignment expression is the new value
+of @var{var}.
+
+@node Logical Expressions
+@subsection Logical Expressions
+NanoMorpho provides the following logical operations:
+@itemize
+@item
+@code{and}
+@item
+@code{or}
+@item
+@code{not}
+@end itemize
+
+@code{not} is a unary operation (@pxref{Binary and Unary Operations})
+whose value is the boolean inverse of its argument, i.e. @samp{not true}
+is @code{false} and @samp{not false} is @code{true}.  @code{and} and
+@code{or} are binary operations (@pxref{Binary and Unary Operations})
+with a special behaviour known a @dfn{short circuiting}.
+
+A or expression @samp{@var{a} or @var{b}} first evaluates @var{a} and if
+@var{a} is @code{true} stops immediately with @var{a} as its value,
+without ever evaluating @var{b}, since @var{b}'s value can not affect
+the truth value of the whole expression (@samp{true or @var{something}}
+is always true, regardless of the value of @var{something}).  If @var{a}
+is @code{false} @var{b} is evaluated and its value becomes the value of
+the or expression.
+
+Similarly a and expression @samp{@var{a} and @var{b}} first evaluates
+@var{a} and if it is @code{false} immediately with @code{false} as its
+value, without ever evaluating @var{b} since @var{b}'s value can not affect
+the truth value of the whole expression (@samp{false and @var{something}}
+is always false, regardless of the value of @var{something}).  If
+@var{a} is @code{true} @var{b} is evaluated and its value becomes the
+value of the and expression.
+
+@node Auxiliary syntax diagrams
+@appendix Auxiliary syntax diagrams
+This appendix contains syntax diagrams which are referred to by the
+diagrams of @ref{Elements of the Language}, but which do not themselves
+form a true language elements, such as the definition of a digit.
+
+@float Figure,stx:digit
+@image{digit}
+@caption{The definition of a digit}
+@end float
+
+@float Figure,stx:octal
+@image{octal}
+@caption{The definition of a octal digit}
+@end float
+
+@float Figure,stx:alpha
+@image{alpha}
+@caption{The definition of an alphabetic character}
+@end float
+
+@node Appendix
+@appendix Appendix
+@include fdl.texi
+
+@bye

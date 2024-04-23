@@ -1,0 +1,35 @@
+\documentclass[convert={outext=.png}]{standalone}
+\input{env}
+\begin{document}
+\begin{málrit}{STRING}
+	`"'
+	\begin{stack}\\
+		\begin{rep}
+			\begin{stack}
+				\begin{stack}
+					"any character except" `"'\\
+					`\textbackslash '
+				\end{stack}\\
+				`\textbackslash ' `"'\\
+				`\textbackslash ' `\textbackslash '\\
+				`\textbackslash ' `n'\\
+				`\textbackslash ' `r'\\
+				`\textbackslash ' `t'\\
+				`\textbackslash ' `b'\\
+				`\textbackslash ' `f'\\
+				`\textbackslash ' <octal>\\
+				`\textbackslash ' <octal> <octal>\\
+				`\textbackslash '
+				\begin{stack}
+					`0'\\
+					`1'\\
+					`2'\\
+					`3'
+				\end{stack}
+				<octal> <octal>
+			\end{stack}
+		\end{rep}
+	\end{stack}
+	`"'
+\end{málrit}
+\end{document}
